@@ -698,26 +698,41 @@
     }
     
     document.getElementById("import-filename-conc").textContent = file.name;
-    statusEl.textContent = "Analisando extrato e cruzando dados…";
+    statusEl.textContent = "Processando " + file.name + "...";
+    
+    var isText = file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".txt") || file.name.toLowerCase().endsWith(".ofx");
 
     var reader = new FileReader();
     reader.onload = function(ev){
       try {
-        var data = new Uint8Array(ev.target.result);
-        var wb = XLSX.read(data, { type: "array", cellDates: true });
-        var ws = wb.Sheets[wb.SheetNames[0]];
-        var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
-        
-        // Fix for CSVs parsed as a single column by XLSX library (semicolon delimited)
-        rows = rows.map(function(r) {
-          if (r.length === 1 && typeof r[0] === 'string' && r[0].indexOf(';') > -1) {
-            return r[0].split(';');
-          }
-          return r;
-        });
+        var rows = [];
+        if (isText) {
+          var text = ev.target.result;
+          var lines = text.split(/\r?\n/);
+          rows = lines.map(function(line) {
+            if (line.indexOf(";") > -1) {
+              return line.split(";");
+            } else if (line.indexOf(",") > -1 && line.split(",").length > 3) {
+              return line.split(",");
+            } else {
+              // Fixed width or single column
+              // Let's replace multiple spaces with a single tab or semicolon to simulate columns
+              // But safely, we can just split by 2 or more spaces
+              var cols = line.trim().split(/\s{2,}/);
+              return cols.length > 1 ? cols : [line];
+            }
+          });
+        } else {
+          var data = new Uint8Array(ev.target.result);
+          var wb = XLSX.read(data, { type: "array", cellDates: true });
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+        }
         
         var headerIdx = detectHeaderRow(rows);
         var colMap = buildColumnMap(rows[headerIdx]);
+        
+        // Se ainda não achou as colunas mesmo com o split por espaços duplos
         if(colMap.data === undefined || colMap.valor === undefined){
           statusEl.textContent = "Não consegui identificar colunas de Data e Valor no arquivo do banco.";
           return;
@@ -788,15 +803,20 @@
            "<span>Total do Extrato: <strong>" + extrato.length + "</strong></span>" +
            "<span>Lançamentos no Sistema: <strong>" + sistema.length + "</strong></span>" +
            "<span class='val-c'>Batidos (OK): <strong>" + matchCount + "</strong></span>";
-           
+           renderConciliacao(extrato);
         statusEl.textContent = "Conciliação concluída.";
-        toast("Conciliação gerada.");
-      } catch(err){
-        statusEl.textContent = "Erro ao cruzar os dados: " + (err.message || "desconhecido");
+        document.getElementById("file-import-conc").value = "";
+      } catch(e) {
+        console.error(e);
+        statusEl.textContent = "Erro ao processar o arquivo: " + e.message;
       }
     };
     reader.onerror = function(){ statusEl.textContent = "Falha ao ler o arquivo."; };
-    reader.readAsArrayBuffer(file);
+    if (isText) {
+      reader.readAsText(file, "utf-8"); // Ou iso-8859-1 se tiver problema com acento
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
   }
 
   // ---------- Events & Init ----------
