@@ -24,7 +24,7 @@
         { id: "caixa-3112", label: "000577219519-7 · Conta 3112", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219519-7 Conta 3112", hasDataMov: true },
         { id: "caixa-2832", label: "000577219469-7 · Conta 2832", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219469-7 Conta 2832", hasDataMov: true },
         { id: "sicoob-7486", label: "58.289-1 · Conta 7486", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.289-1 Conta 7486" },
-        { id: "sicoob-643",  label: "24402-3 · Conta 643", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 24402-3 Conta 643" },
+        { id: "sicoob-643",  label: "24432-0 · Conta 643", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 24432-0 Conta 643" },
         { id: "sicoob-7483", label: "58.282-4 · Conta 7483", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.282-4 Conta 7483" },
         { id: "sicoob-7485", label: "58.287-5 · Conta 7485", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.287-5 Conta 7485" },
         { id: "sicoob-7484", label: "58.286-7 · Conta 7484", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.286-7 Conta 7484" },
