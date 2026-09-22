@@ -151,21 +151,47 @@
     var wrap = document.getElementById("sidebar-menu");
     wrap.innerHTML = "";
     MENU_SECTIONS.forEach(function(sec){
-      var group = document.createElement("div");
-      group.className = "bank-group";
-      var title = document.createElement("div");
-      title.className = "bank-name";
-      title.textContent = sec.title;
-      group.appendChild(title);
+      var secTitle = document.createElement("div");
+      secTitle.style.marginTop = "22px";
+      secTitle.style.marginBottom = "6px";
+      secTitle.style.padding = "0 10px";
+      secTitle.style.fontSize = "11px";
+      secTitle.style.color = "#C9C2AD";
+      secTitle.style.fontWeight = "700";
+      secTitle.style.textTransform = "uppercase";
+      secTitle.style.letterSpacing = "0.05em";
+      secTitle.textContent = sec.title;
+      wrap.appendChild(secTitle);
+
+      var subGroups = {};
       sec.items.forEach(function(item){
-        var btn = document.createElement("button");
-        btn.className = "acct-btn";
-        btn.id = "btn-" + item.id;
-        btn.innerHTML = item.label + '<span class="acct-count" id="count-' + item.id + '"></span>';
-        btn.addEventListener("click", function(){ selectTab(item.id); });
-        group.appendChild(btn);
+        var key = item.bank || ""; 
+        if(!subGroups[key]) subGroups[key] = [];
+        subGroups[key].push(item);
       });
-      wrap.appendChild(group);
+
+      Object.keys(subGroups).forEach(function(key){
+        var group = document.createElement("div");
+        group.className = "bank-group";
+        group.style.marginTop = "4px";
+        
+        if (key && key !== "Unidade" && key !== "Movimento") {
+           var title = document.createElement("div");
+           title.className = "bank-name";
+           title.textContent = key;
+           group.appendChild(title);
+        }
+        
+        subGroups[key].forEach(function(item){
+          var btn = document.createElement("button");
+          btn.className = "acct-btn";
+          btn.id = "btn-" + item.id;
+          btn.innerHTML = item.label + '<span class="acct-count" id="count-' + item.id + '"></span>';
+          btn.addEventListener("click", function(){ selectTab(item.id); });
+          group.appendChild(btn);
+        });
+        wrap.appendChild(group);
+      });
     });
     refreshCounts();
   }
