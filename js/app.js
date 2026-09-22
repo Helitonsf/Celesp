@@ -699,9 +699,15 @@
       try {
         var data = new Uint8Array(ev.target.result);
         var wb = XLSX.read(data, { type: "array", cellDates: true });
-        // Pega a primeira aba do arquivo para o extrato (extratos geralmente vêm na 1ª aba)
         var ws = wb.Sheets[wb.SheetNames[0]];
         var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+        
+        // Fix for CSVs parsed as a single column by XLSX library (semicolon delimited)
+        if (rows.length > 0 && rows[0].length === 1 && typeof rows[0][0] === 'string' && rows[0][0].indexOf(';') > -1) {
+          rows = rows.map(function(r) {
+            return r[0] ? r[0].split(';') : [];
+          });
+        }
         
         var headerIdx = detectHeaderRow(rows);
         var colMap = buildColumnMap(rows[headerIdx]);
