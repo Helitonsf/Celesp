@@ -39,6 +39,8 @@
           </label>
           <input type="file" id="file-import-ledger" accept=".xlsx,.xlsm,.xls" style="display:none">
           <span class="hint" id="import-filename-ledger">nenhum arquivo escolhido</span>
+          
+          <button type="button" class="danger" id="clear-acct-top" style="margin-left:auto; font-size:12px; padding:6px 12px;">Limpar Tudo</button>
         </div>
         <div id="import-status-ledger" class="hint" style="margin-top:10px"></div>
       </section>
@@ -136,8 +138,11 @@
         <div id="import-status-cadastro" class="hint" style="margin-top:10px"></div>
       </section>
       <section class="panel">
-        <h2>Itens Cadastrados</h2>
-        <div class="ledger-wrap">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2>Itens Cadastrados</h2>
+          <button type="button" class="danger" id="clear-cadastro" style="font-size: 12px; padding: 6px 12px;">Limpar Cadastros desta Aba</button>
+        </div>
+        <div class="ledger-wrap" style="margin-top:12px;">
           <table class="ledger" id="cadastro-table">
             <thead><tr id="cadastro-head"><th>Nome/Descrição</th><th>Ações</th></tr></thead>
             <tbody id="cadastro-body"></tbody>
