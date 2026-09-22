@@ -811,14 +811,21 @@
   });
 
   // Export and Clear bindings
-  document.getElementById("clear-acct").addEventListener("click", function(){
+  function clearCurrentTab() {
     if(!currentTab) return;
     if(confirm("Excluir tudo salvo nesta aba neste navegador?")){
       saveEntries(currentTab, []);
-      renderLedger();
+      if (itemIndex[currentTab] && itemIndex[currentTab].type === "ledger") {
+        renderLedger();
+      } else {
+        renderCadastro();
+      }
       toast("Limpado com sucesso.");
     }
-  });
+  }
+  document.getElementById("clear-acct").addEventListener("click", clearCurrentTab);
+  document.getElementById("clear-acct-top").addEventListener("click", clearCurrentTab);
+  document.getElementById("clear-cadastro").addEventListener("click", clearCurrentTab);
 
   // Init
   function fillSelect(sel, options){
