@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lançamentos — Agosto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --ink: #14213D;
+    --ink-soft: #2B3A5C;
+    --paper: #FBF9F4;
+    --paper-line: #E4DFD2;
+    --brass: #A9793F;
+    --brass-deep: #8A6130;
+    --credit: #2E6E4E;
+    --debit: #A6403A;
+    --panel: #FFFFFF;
+    --text: #1E1E1E;
+    --text-muted: #6B6656;
+    --radius: 3px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #0E1730;
+      --ink-soft: #1C2A4A;
+      --paper: #171512;
+      --paper-line: #34302A;
+      --brass: #C79A5C;
+      --brass-deep: #DDB578;
+      --credit: #4E9A72;
+      --debit: #D97066;
+      --panel: #201D18;
+      --text: #EDE8DD;
+      --text-muted: #9C9686;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #0E1730;
+    --ink-soft: #1C2A4A;
+    --paper: #171512;
+    --paper-line: #34302A;
+    --brass: #C79A5C;
+    --brass-deep: #DDB578;
+    --credit: #4E9A72;
+    --debit: #D97066;
+    --panel: #201D18;
+    --text: #EDE8DD;
+    --text-muted: #9C9686;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+  @media (max-width: 820px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--ink);
+    color: #EDE8DD;
+    padding: 28px 18px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: #C9C2AD;
+    margin-bottom: 2px;
+  }
+  .brand strong {
+    display: block;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0;
+    margin-top: 4px;
+  }
+  .bank-group { margin-top: 26px; }
+  .bank-name {
+    font-size: 11.5px;
+    color: #9EA9C7;
+    padding: 0 10px 6px;
+    font-weight: 500;
+  }
+  .acct-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: #DCD8C9;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    line-height: 1.35;
+    margin-bottom: 2px;
+  }
+  .acct-btn:hover { background: rgba(255,255,255,0.06); }
+  .acct-btn.active {
+    background: var(--brass);
+    color: #1B1502;
+    font-weight: 600;
+  }
+  .acct-count {
+    float: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    opacity: .8;
+  }
+
+  /* Main */
+  main { padding: 30px 34px 70px; max-width: 980px; }
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  header.top h1 {
+    font-size: 21px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.top .sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 22px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: none;
+    margin: 0 0 16px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  :root[data-theme="dark"] .panel h2, @media (prefers-color-scheme: dark) { }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .grid .span2 { grid-column: span 2; }
+  .grid .span4 { grid-column: span 4; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .grid .span2, .grid .span4 { grid-column: span 2; }
+  }
+
+  label {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px 9px;
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 1px;
+  }
+  input[readonly] { color: var(--text-muted); }
+
+  .valor-row { display: flex; gap: 8px; align-items: flex-end; }
+  .valor-row > div:first-child { flex: 1; }
+  .toggle {
+    display: flex;
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    height: 37px;
+  }
+  .toggle button {
+    border: none;
+    background: var(--paper);
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    width: 42px;
+    cursor: pointer;
+  }
+  .toggle button.on-c.active { background: var(--credit); color: #fff; }
+  .toggle button.on-d.active { background: var(--debit); color: #fff; }
+
+  .form-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  button.primary {
+    background: var(--brass);
+    color: #1B1502;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.primary:hover { background: var(--brass-deep); }
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--paper-line);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .hint { font-size: 12px; color: var(--text-muted); }
+  .error-msg { color: var(--debit); font-size: 12.5px; margin-top: 8px; display:none; }
+
+  /* Ledger table */
+  .ledger-wrap { overflow-x: auto; }
+  table.ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 720px;
+  }
+  table.ledger th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--paper-line);
+    white-space: nowrap;
+  }
+  table.ledger td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--paper-line);
+    vertical-align: top;
+  }
+  table.ledger tbody tr:hover { background: rgba(169,121,63,0.06); }
+  .val-c { color: var(--credit); font-family: 'IBM Plex Mono', monospace; font-weight: 600; white-space: nowrap; }
+  .val-d { color: var(--debit); font-family: 'IBM Plex Mono', monospace; font-weight: 600; white-space: nowrap; }
+  .row-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 3px 6px;
+    font-family: inherit;
+  }
+  .row-actions button:hover { color: var(--debit); }
+  .empty {
+    text-align: center;
+    padding: 34px 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .totals {
+    display: flex;
+    gap: 22px;
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+  .totals span { color: var(--text-muted); }
+  footer.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">TI · Netdata / Único<strong>Lançamentos — Agosto</strong></div>
+    <div id="bank-groups"></div>
+  </nav>
+
+  <main>
+    <header class="top">
+      <div>
+        <h1 id="acct-title">Selecione uma conta</h1>
+        <div class="sub" id="acct-sub"></div>
+      </div>
+      <div class="sub" id="storage-note">salvo neste navegador</div>
+    </header>
+
+    <section class="panel">
+      <h2>Importar da planilha</h2>
+      <p class="hint" style="margin:0 0 12px">
+        Importa os lançamentos já existentes na aba desta conta a partir de um arquivo <strong>.xlsx</strong> ou <strong>.xlsm</strong>
+        (ex.: a planilha de agosto). Colunas calculadas (Saldo, Índice Diário etc.) são ignoradas — só os campos lançados manualmente entram.
+      </p>
+      <div class="form-actions" style="margin-top:0">
+        <label class="ghost" for="file-import" style="display:inline-flex;align-items:center;cursor:pointer;padding:10px 16px;border:1px solid var(--paper-line);border-radius:var(--radius);font-size:13.5px;margin:0">
+          Escolher arquivo…
+        </label>
+        <input type="file" id="file-import" accept=".xlsx,.xlsm,.xls" style="display:none">
+        <span class="hint" id="import-filename">nenhum arquivo escolhido</span>
+      </div>
+      <div id="import-status" class="hint" style="margin-top:10px"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Novo lançamento</h2>
+      <form id="entry-form">
+        <div class="grid">
+          <div>
+            <label for="f-data">Data</label>
+            <input type="date" id="f-data" required>
+          </div>
+          <div id="f-datamov-wrap" style="display:none">
+            <label for="f-datamov">Data Movimento</label>
+            <input type="date" id="f-datamov">
+          </div>
+          <div class="span2">
+            <label for="f-desc">Descrição/Histórico</label>
+            <input type="text" id="f-desc" placeholder="ex.: APLICACAO FINANCEIRA" required>
+          </div>
+          <div>
+            <label for="f-doc">Doc.</label>
+            <input type="text" id="f-doc" placeholder="opcional">
+          </div>
+
+          <div class="span2">
+            <label for="f-valor">Valor</label>
+            <div class="valor-row">
+              <div>
+                <input type="text" id="f-valor" inputmode="decimal" placeholder="0,00" required>
+              </div>
+              <div class="toggle" role="group" aria-label="Crédito ou débito">
+                <button type="button" id="btn-c" class="on-c active">C</button>
+                <button type="button" id="btn-d" class="on-d">D</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label for="f-categoria">Categoria</label>
+            <select id="f-categoria" required></select>
+          </div>
+          <div>
+            <label for="f-unidade">Unidade</label>
+            <select id="f-unidade" required></select>
+          </div>
+
+          <div class="span2">
+            <label for="f-nome">Nome do Fornecedor/Cliente</label>
+            <input type="text" id="f-nome" placeholder="não usar nome de fantasia — opcional">
+          </div>
+          <div class="span2">
+            <label for="f-cpf">CPF/CNPJ</label>
+            <input type="text" id="f-cpf" placeholder="opcional">
+          </div>
+        </div>
+        <div class="error-msg" id="form-error">Preencha data, descrição, valor, categoria e unidade.</div>
+        <div class="form-actions">
+          <button type="submit" class="primary" id="submit-btn">Adicionar lançamento</button>
+          <button type="button" class="ghost" id="cancel-edit" style="display:none">Cancelar edição</button>
+          <span class="hint">Valor formata sozinho no padrão X,XXC/D ao sair do campo.</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Lançamentos lançados nesta conta</h2>
+      <div class="ledger-wrap">
+        <table class="ledger" id="ledger-table">
+          <thead><tr id="ledger-head"></tr></thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+        <div class="empty" id="ledger-empty" style="display:none">Nenhum lançamento adicionado ainda para esta conta.</div>
+      </div>
+      <div class="totals" id="totals"></div>
+      <footer class="actions">
+        <button class="ghost" id="export-csv">Exportar CSV</button>
+        <button class="ghost" id="export-clip">Copiar (colar no Excel)</button>
+        <button class="ghost" id="clear-acct">Limpar lançamentos desta conta</button>
+      </footer>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORIAS = ["Aplicações","Crédito Bloqueado","Despesa","Pagamento","Pendente","Recebimento","Resgate","Saldo do dia"];
+  var UNIDADES = ["Matriz","Tubarão","Chapecó","Criciúma","Florianópolis","Passo Fundo"];
+
+  var BANKS = [
+    { name: "Sicredi", accounts: [
+      { id: "sicredi-627", label: "19915-0 · Conta 627" },
+      { id: "sicredi-7573", label: "26208-6-0 · Conta 7573" },
+      { id: "sicredi-7575", label: "26182-7-0 · Conta 7575" },
+      { id: "sicredi-7574", label: "26135-7-0 · Conta 7574" }
+    ]},
+    { name: "Banrisul", accounts: [
+      { id: "banrisul-637", label: "13953.0-6-0 · Conta 637" },
+      { id: "banrisul-783", label: "13953.0-6-0 · Conta 783" }
+    ]},
+    { name: "CAIXA", accounts: [
+      { id: "caixa-3112", label: "000577219519-7 · Conta 3112", hasDataMov: true },
+      { id: "caixa-2832", label: "000577219469-7 · Conta 2832", hasDataMov: true }
+    ]},
+    { name: "SICOOB", accounts: [
+      { id: "sicoob-7486", label: "58.289-1 · Conta 7486" },
+      { id: "sicoob-643",  label: "24402-3 · Conta 643" },
+      { id: "sicoob-7483", label: "58.282-4 · Conta 7483" },
+      { id: "sicoob-7485", label: "58.287-5 · Conta 7485" },
+      { id: "sicoob-7484", label: "58.286-7 · Conta 7484" }
+    ]},
+    { name: "SANTANDER", accounts: [
+      { id: "santander-7836", label: "13007400-1 · Conta 7836" },
+      { id: "santander-7835", label: "13007403-2 · Conta 7835" }
+    ]}
+  ];
+
+  var accountIndex = {};
+  BANKS.forEach(function(b){ b.accounts.forEach(function(a){ a.bank = b.name; accountIndex[a.id] = a; }); });
+
+  // Exact sheet names as they appear inside the .xlsm workbook, for import matching.
+  var SHEET_NAMES = {
+    "sicredi-627": "Sicredi 19915-0 Conta 627",
+    "sicredi-7573": "Sicredi 26208-6-0 Conta 7573",
+    "sicredi-7575": "Sicredi 26182-7-0 Conta 7575",
+    "sicredi-7574": "Sicredi 26135-7-0 Conta 7574",
+    "banrisul-637": "Banrisul 13953.0-6-0 Conta 637",
+    "banrisul-783": "Banrisul 13953.0-6-0 Conta 783",
+    "caixa-3112": "CAIXA 000577219519-7 Conta 3112",
+    "caixa-2832": "CAIXA 000577219469-7 Conta 2832",
+    "sicoob-7486": "SICOOB  58.289-1 Conta 7486",
+    "sicoob-643": "SICOOB 24402-3 Conta 643",
+    "sicoob-7483": "SICOOB 58.282-4 Conta 7483",
+    "sicoob-7485": "SICOOB  58.287-5 Conta 7485",
+    "sicoob-7484": "SICOOB 58.286-7 Conta 7484",
+    "santander-7836": "SANTANDER 13007400-1 Conta 7836",
+    "santander-7835": "SANTANDER 13007403-2 Conta 7835"
+  };
+
+  // header text fragments -> internal field, tried in order, case-insensitive "contains"
+  var HEADER_MAP = [
+    { field: "dataMov", tests: ["data movimento"] },
+    { field: "data", tests: ["data"] },
+    { field: "desc", tests: ["descrição", "descricao"] },
+    { field: "doc", tests: ["doc."] },
+    { field: "valor", tests: ["valor"] },
+    { field: "categoria", tests: ["categoria"] },
+    { field: "unidade", tests: ["unidade"] },
+    { field: "nome", tests: ["nome do fornecedor", "fornecedor/cliente"] },
+    { field: "cpf", tests: ["cpf/cnpj"] }
+  ];
+
+  var currentAcct = null;
+  var editingId = null;
+
+  // ---------- storage ----------
+  function storageKey(acctId){ return "lancamentos:agosto:" + acctId; }
+
+  function loadEntries(acctId){
+    try {
+      var raw = localStorage.getItem(storageKey(acctId));
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+
+  function saveEntries(acctId, entries){
+    try {
+      localStorage.setItem(storageKey(acctId), JSON.stringify(entries));
+      return true;
+    } catch(e){ return false; }
+  }
+
+  // ---------- helpers ----------
+  function brDate(iso){
+    if(!iso) return "";
+    var p = iso.split("-");
+    return p.length===3 ? (p[2] + "/" + p[1] + "/" + p[0]) : iso;
+  }
+
+  function parseValorInput(raw){
+    if(!raw) return NaN;
+    var s = String(raw).trim();
+    s = s.replace(/[^\d,.\-]/g, "");
+    if(s.indexOf(",") > -1 && s.indexOf(".") > -1){
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else if(s.indexOf(",") > -1){
+      s = s.replace(",", ".");
+    }
+    return parseFloat(s);
+  }
+
+  function formatBRNumber(n){
+    var neg = n < 0;
+    n = Math.abs(n);
+    var fixed = n.toFixed(2);
+    var parts = fixed.split(".");
+    var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return (neg ? "-" : "") + intPart + "," + parts[1];
+  }
+
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+
+  // ---------- sidebar ----------
+  function buildSidebar(){
+    var wrap = document.getElementById("bank-groups");
+    wrap.innerHTML = "";
+    BANKS.forEach(function(bank){
+      var group = document.createElement("div");
+      group.className = "bank-group";
+      var title = document.createElement("div");
+      title.className = "bank-name";
+      title.textContent = bank.name;
+      group.appendChild(title);
+      bank.accounts.forEach(function(acct){
+        var btn = document.createElement("button");
+        btn.className = "acct-btn";
+        btn.id = "btn-" + acct.id;
+        btn.innerHTML = acct.label + '<span class="acct-count" id="count-' + acct.id + '"></span>';
+        btn.addEventListener("click", function(){ selectAccount(acct.id); });
+        group.appendChild(btn);
+      });
+      wrap.appendChild(group);
+    });
+    refreshCounts();
+  }
+
+  function refreshCounts(){
+    Object.keys(accountIndex).forEach(function(id){
+      var el = document.getElementById("count-" + id);
+      if(el) el.textContent = loadEntries(id).length || "";
+    });
+  }
+
+  // ---------- form setup ----------
+  function fillSelect(sel, options){
+    sel.innerHTML = '<option value="" disabled selected>selecionar…</option>' +
+      options.map(function(o){ return '<option value="' + o + '">' + o + '</option>'; }).join("");
+  }
+
+  function setValorSign(sign){
+    document.getElementById("btn-c").classList.toggle("active", sign === "C");
+    document.getElementById("btn-d").classList.toggle("active", sign === "D");
+    document.getElementById("entry-form").dataset.sign = sign;
+  }
+
+  function selectAccount(id){
+    currentAcct = id;
+    editingId = null;
+    var acct = accountIndex[id];
+    document.querySelectorAll(".acct-btn").forEach(function(b){ b.classList.remove("active"); });
+    document.getElementById("btn-" + id).classList.add("active");
+    document.getElementById("acct-title").textContent = acct.bank + " — " + acct.label;
+    document.getElementById("acct-sub").textContent = acct.bank.toUpperCase() + " · AGOSTO";
+    document.getElementById("f-datamov-wrap").style.display = acct.hasDataMov ? "block" : "none";
+    document.getElementById("cancel-edit").style.display = "none";
+    document.getElementById("submit-btn").textContent = "Adicionar lançamento";
+    document.getElementById("import-status").textContent = "";
+    document.getElementById("import-filename").textContent = "nenhum arquivo escolhido";
+    document.getElementById("file-import").value = "";
+    resetForm();
+    renderLedger();
+  }
+
+  function resetForm(){
+    document.getElementById("entry-form").reset();
+    setValorSign("C");
+    document.getElementById("form-error").style.display = "none";
+  }
+
+  function formatValorField(){
+    var input = document.getElementById("f-valor");
+    var n = parseValorInput(input.value);
+    if(!isNaN(n)) input.value = formatBRNumber(n);
+  }
+
+  // ---------- ledger render ----------
+  function columnsFor(acct){
+    var cols = [
+      { key: "data", label: "Data" }
+    ];
+    if(acct.hasDataMov) cols.push({ key: "dataMov", label: "Data Movimento" });
+    cols.push(
+      { key: "desc", label: "Descrição/Histórico" },
+      { key: "doc", label: "Doc." },
+      { key: "valor", label: "Valor" },
+      { key: "categoria", label: "Categoria" },
+      { key: "unidade", label: "Unidade" },
+      { key: "nome", label: "Fornecedor/Cliente" },
+      { key: "cpf", label: "CPF/CNPJ" },
+      { key: "", label: "" }
+    );
+    return cols;
+  }
+
+  function renderLedger(){
+    if(!currentAcct) return;
+    var acct = accountIndex[currentAcct];
+    var entries = loadEntries(currentAcct);
+    var cols = columnsFor(acct);
+
+    var head = document.getElementById("ledger-head");
+    head.innerHTML = cols.map(function(c){ return "<th>" + c.label + "</th>"; }).join("");
+
+    var body = document.getElementById("ledger-body");
+    var empty = document.getElementById("ledger-empty");
+    body.innerHTML = "";
+
+    if(entries.length === 0){
+      empty.style.display = "block";
+    } else {
+      empty.style.display = "none";
+      entries.slice().sort(function(a,b){ return (a.data||"").localeCompare(b.data||""); }).forEach(function(e){
+        var tr = document.createElement("tr");
+        var cells = [];
+        cells.push(brDate(e.data));
+        if(acct.hasDataMov) cells.push(brDate(e.dataMov));
+        cells.push(escapeHtml(e.desc));
+        cells.push(escapeHtml(e.doc||""));
+        var valClass = e.sign === "D" ? "val-d" : "val-c";
+        cells.push('<span class="' + valClass + '">' + formatBRNumber(e.valorNum) + e.sign + '</span>');
+        cells.push(escapeHtml(e.categoria));
+        cells.push(escapeHtml(e.unidade));
+        cells.push(escapeHtml(e.nome||""));
+        cells.push(escapeHtml(e.cpf||""));
+        tr.innerHTML = cells.map(function(c){ return "<td>" + c + "</td>"; }).join("");
+        var actionsTd = document.createElement("td");
+        actionsTd.className = "row-actions";
+        var editBtn = document.createElement("button");
+        editBtn.textContent = "editar";
+        editBtn.addEventListener("click", function(){ startEdit(e.id); });
+        var delBtn = document.createElement("button");
+        delBtn.textContent = "excluir";
+        delBtn.addEventListener("click", function(){ deleteEntry(e.id); });
+        actionsTd.appendChild(editBtn);
+        actionsTd.appendChild(delBtn);
+        tr.appendChild(actionsTd);
+        body.appendChild(tr);
+      });
+    }
+
+    var totC = 0, totD = 0;
+    entries.forEach(function(e){ if(e.sign === "D") totD += e.valorNum; else totC += e.valorNum; });
+    document.getElementById("totals").innerHTML =
+      '<span>créditos: </span><strong class="val-c">' + formatBRNumber(totC) + 'C</strong>' +
+      '<span>débitos: </span><strong class="val-d">' + formatBRNumber(totD) + 'D</strong>' +
+      '<span>' + entries.length + ' lançamento(s)</span>';
+
+    refreshCounts();
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(m){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[m];
+    });
+  }
+
+  // ---------- CRUD ----------
+  function startEdit(id){
+    var entries = loadEntries(currentAcct);
+    var e = entries.find(function(x){ return x.id === id; });
+    if(!e) return;
+    editingId = id;
+    document.getElementById("f-data").value = e.data || "";
+    if(document.getElementById("f-datamov")) document.getElementById("f-datamov").value = e.dataMov || "";
+    document.getElementById("f-desc").value = e.desc || "";
+    document.getElementById("f-doc").value = e.doc || "";
+    document.getElementById("f-valor").value = formatBRNumber(e.valorNum);
+    setValorSign(e.sign);
+    document.getElementById("f-categoria").value = e.categoria || "";
+    document.getElementById("f-unidade").value = e.unidade || "";
+    document.getElementById("f-nome").value = e.nome || "";
+    document.getElementById("f-cpf").value = e.cpf || "";
+    document.getElementById("submit-btn").textContent = "Salvar edição";
+    document.getElementById("cancel-edit").style.display = "inline-block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function deleteEntry(id){
+    var entries = loadEntries(currentAcct).filter(function(x){ return x.id !== id; });
+    saveEntries(currentAcct, entries);
+    renderLedger();
+    toast("Lançamento excluído.");
+  }
+
+  function submitForm(ev){
+    ev.preventDefault();
+    var acct = accountIndex[currentAcct];
+    var data = document.getElementById("f-data").value;
+    var dataMov = acct.hasDataMov ? document.getElementById("f-datamov").value : "";
+    var desc = document.getElementById("f-desc").value.trim();
+    var doc = document.getElementById("f-doc").value.trim();
+    var valorRaw = document.getElementById("f-valor").value;
+    var valorNum = parseValorInput(valorRaw);
+    var sign = document.getElementById("entry-form").dataset.sign || "C";
+    var categoria = document.getElementById("f-categoria").value;
+    var unidade = document.getElementById("f-unidade").value;
+    var nome = document.getElementById("f-nome").value.trim();
+    var cpf = document.getElementById("f-cpf").value.trim();
+
+    if(!data || !desc || isNaN(valorNum) || !categoria || !unidade){
+      document.getElementById("form-error").style.display = "block";
+      return;
+    }
+    document.getElementById("form-error").style.display = "none";
+
+    var entries = loadEntries(currentAcct);
+    if(editingId){
+      var idx = entries.findIndex(function(x){ return x.id === editingId; });
+      if(idx > -1){
+        entries[idx] = Object.assign({}, entries[idx], { data:data, dataMov:dataMov, desc:desc, doc:doc, valorNum:valorNum, sign:sign, categoria:categoria, unidade:unidade, nome:nome, cpf:cpf });
+      }
+      editingId = null;
+      document.getElementById("cancel-edit").style.display = "none";
+      document.getElementById("submit-btn").textContent = "Adicionar lançamento";
+      toast("Lançamento atualizado.");
+    } else {
+      entries.push({
+        id: "e" + Date.now() + Math.random().toString(36).slice(2,7),
+        data: data, dataMov: dataMov, desc: desc, doc: doc,
+        valorNum: valorNum, sign: sign, categoria: categoria, unidade: unidade,
+        nome: nome, cpf: cpf
+      });
+      toast("Lançamento adicionado.");
+    }
+    var ok = saveEntries(currentAcct, entries);
+    if(!ok) toast("Não foi possível salvar — armazenamento indisponível neste navegador.");
+    resetForm();
+    renderLedger();
+  }
+
+  // ---------- export ----------
+  function exportRows(){
+    var acct = accountIndex[currentAcct];
+    var entries = loadEntries(currentAcct).slice().sort(function(a,b){ return (a.data||"").localeCompare(b.data||""); });
+    var headers = ["Data"];
+    if(acct.hasDataMov) headers.push("Data Movimento");
+    headers.push("Descrição/Histórico","Doc.","Valor","Categoria","Unidade","Nome do Fornecedor/Cliente","CPF/CNPJ");
+    var rows = [headers];
+    entries.forEach(function(e){
+      var row = [brDate(e.data)];
+      if(acct.hasDataMov) row.push(brDate(e.dataMov));
+      row.push(e.desc, e.doc||"", formatBRNumber(e.valorNum) + e.sign, e.categoria, e.unidade, e.nome||"", e.cpf||"");
+      rows.push(row);
+    });
+    return rows;
+  }
+
+  function toCsv(rows){
+    return rows.map(function(r){
+      return r.map(function(v){
+        v = String(v);
+        if(v.indexOf(";") > -1 || v.indexOf('"') > -1 || v.indexOf("\n") > -1){
+          v = '"' + v.replace(/"/g,'""') + '"';
+        }
+        return v;
+      }).join(";");
+    }).join("\r\n");
+  }
+
+  function toTsv(rows){
+    return rows.map(function(r){ return r.join("\t"); }).join("\n");
+  }
+
+  function downloadFile(filename, content, mime){
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  }
+
+  document.getElementById("export-csv").addEventListener("click", function(){
+    if(!currentAcct) return;
+    var rows = exportRows();
+    if(rows.length <= 1){ toast("Não há lançamentos para exportar."); return; }
+    downloadFile(currentAcct + "-agosto.csv", "\ufeff" + toCsv(rows), "text/csv;charset=utf-8");
+  });
+
+  document.getElementById("export-clip").addEventListener("click", function(){
+    if(!currentAcct) return;
+    var rows = exportRows();
+    if(rows.length <= 1){ toast("Não há lançamentos para copiar."); return; }
+    var tsv = toTsv(rows);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(tsv).then(function(){
+        toast("Copiado — cole direto nas células da planilha.");
+      }).catch(function(){ fallbackCopy(tsv); });
+    } else {
+      fallbackCopy(tsv);
+    }
+  });
+
+  function fallbackCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast("Copiado — cole direto nas células da planilha."); }
+    catch(e){ toast("Não foi possível copiar automaticamente."); }
+    document.body.removeChild(ta);
+  }
+
+  document.getElementById("clear-acct").addEventListener("click", function(){
+    if(!currentAcct) return;
+    if(confirm("Excluir todos os lançamentos salvos desta conta neste navegador?")){
+      saveEntries(currentAcct, []);
+      renderLedger();
+      toast("Lançamentos desta conta apagados.");
+    }
+  });
+
+  document.getElementById("cancel-edit").addEventListener("click", function(){
+    editingId = null;
+    resetForm();
+    document.getElementById("cancel-edit").style.display = "none";
+    document.getElementById("submit-btn").textContent = "Adicionar lançamento";
+  });
+
+  document.getElementById("btn-c").addEventListener("click", function(){ setValorSign("C"); });
+  document.getElementById("btn-d").addEventListener("click", function(){ setValorSign("D"); });
+  document.getElementById("f-valor").addEventListener("blur", formatValorField);
+  document.getElementById("entry-form").addEventListener("submit", submitForm);
+
+  // ---------- import ----------
+  function excelDateToIso(v){
+    if(v instanceof Date && !isNaN(v)){
+      var y = v.getFullYear(), m = String(v.getMonth()+1).padStart(2,"0"), d = String(v.getDate()).padStart(2,"0");
+      return y + "-" + m + "-" + d;
+    }
+    if(typeof v === "number"){
+      // Excel serial date (1900 system)
+      var epoch = new Date(Date.UTC(1899, 11, 30));
+      var dt = new Date(epoch.getTime() + v * 86400000);
+      var y2 = dt.getUTCFullYear(), m2 = String(dt.getUTCMonth()+1).padStart(2,"0"), d2 = String(dt.getUTCDate()).padStart(2,"0");
+      return y2 + "-" + m2 + "-" + d2;
+    }
+    if(typeof v === "string"){
+      var m3 = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if(m3) return m3[3] + "-" + m3[2].padStart(2,"0") + "-" + m3[1].padStart(2,"0");
+    }
+    return "";
+  }
+
+  function parseValorCell(v){
+    if(v === null || v === undefined || v === "") return null;
+    var s = String(v).trim();
+    var sign = "C";
+    var lastChar = s.slice(-1).toUpperCase();
+    if(lastChar === "C" || lastChar === "D"){
+      sign = lastChar;
+      s = s.slice(0, -1);
+    }
+    var n = parseValorInput(s);
+    if(isNaN(n)) return null;
+    return { valorNum: Math.abs(n), sign: sign };
+  }
+
+  function detectHeaderRow(rows){
+    for(var i=0;i<Math.min(rows.length,5);i++){
+      var line = (rows[i]||[]).map(function(c){ return String(c||"").toLowerCase(); }).join("|");
+      if(line.indexOf("data")>-1 && line.indexOf("valor")>-1) return i;
+    }
+    return 0;
+  }
+
+  function buildColumnMap(headerRow){
+    var map = {};
+    headerRow.forEach(function(h, idx){
+      var text = String(h||"").toLowerCase().trim();
+      if(!text) return;
+      HEADER_MAP.forEach(function(spec){
+        if(map[spec.field] !== undefined) return;
+        for(var t=0;t<spec.tests.length;t++){
+          if(text.indexOf(spec.tests[t]) > -1){ map[spec.field] = idx; return; }
+        }
+      });
+    });
+    return map;
+  }
+
+  function importFile(file){
+    var statusEl = document.getElementById("import-status");
+    document.getElementById("import-filename").textContent = file.name;
+    statusEl.textContent = "Lendo arquivo…";
+
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var data = new Uint8Array(ev.target.result);
+        var wb = XLSX.read(data, { type: "array", cellDates: true });
+        var sheetName = SHEET_NAMES[currentAcct];
+        if(wb.SheetNames.indexOf(sheetName) === -1){
+          statusEl.textContent = "Não encontrei a aba \"" + sheetName + "\" neste arquivo. Verifique se é a planilha certa.";
+          return;
+        }
+        var ws = wb.Sheets[sheetName];
+        var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+        var headerIdx = detectHeaderRow(rows);
+        var colMap = buildColumnMap(rows[headerIdx]);
+        if(colMap.data === undefined || colMap.valor === undefined){
+          statusEl.textContent = "Não consegui identificar as colunas Data/Valor nessa aba.";
+          return;
+        }
+
+        var acct = accountIndex[currentAcct];
+        var imported = [];
+        for(var r = headerIdx + 1; r < rows.length; r++){
+          var row = rows[r];
+          if(!row || row.every(function(c){ return c === "" || c === null || c === undefined; })) continue;
+          var isoDate = excelDateToIso(colMap.data !== undefined ? row[colMap.data] : "");
+          var valorCell = colMap.valor !== undefined ? row[colMap.valor] : "";
+          var parsedValor = parseValorCell(valorCell);
+          var desc = colMap.desc !== undefined ? String(row[colMap.desc] || "").trim() : "";
+          if(!isoDate || !parsedValor || !desc) continue; // skip helper/summary rows without a real lançamento
+
+          imported.push({
+            id: "e" + Date.now() + Math.random().toString(36).slice(2,7) + r,
+            data: isoDate,
+            dataMov: acct.hasDataMov && colMap.dataMov !== undefined ? excelDateToIso(row[colMap.dataMov]) : "",
+            desc: desc,
+            doc: colMap.doc !== undefined ? String(row[colMap.doc] || "").trim() : "",
+            valorNum: parsedValor.valorNum,
+            sign: parsedValor.sign,
+            categoria: colMap.categoria !== undefined ? String(row[colMap.categoria] || "").trim() : "",
+            unidade: colMap.unidade !== undefined ? String(row[colMap.unidade] || "").trim() : "",
+            nome: colMap.nome !== undefined ? String(row[colMap.nome] || "").trim() : "",
+            cpf: colMap.cpf !== undefined ? String(row[colMap.cpf] || "").trim() : ""
+          });
+        }
+
+        if(imported.length === 0){
+          statusEl.textContent = "Nenhum lançamento reconhecido nessa aba.";
+          return;
+        }
+
+        var existing = loadEntries(currentAcct);
+        var append = existing.length === 0 || confirm(
+          "Encontrei " + imported.length + " lançamento(s) na aba \"" + sheetName + "\".\n\n" +
+          "OK = adicionar aos " + existing.length + " já existentes nesta conta.\n" +
+          "Cancelar = substituir os existentes por estes " + imported.length + "."
+        );
+        var finalEntries = append ? existing.concat(imported) : imported;
+        saveEntries(currentAcct, finalEntries);
+        renderLedger();
+        statusEl.textContent = imported.length + " lançamento(s) importado(s) de \"" + sheetName + "\".";
+        toast("Importação concluída.");
+      } catch(err){
+        statusEl.textContent = "Não consegui ler esse arquivo (" + (err && err.message ? err.message : "erro desconhecido") + ").";
+      }
+    };
+    reader.onerror = function(){ statusEl.textContent = "Falha ao ler o arquivo."; };
+    reader.readAsArrayBuffer(file);
+  }
+
+  document.getElementById("file-import").addEventListener("change", function(ev){
+    var file = ev.target.files && ev.target.files[0];
+    if(file) importFile(file);
+  });
+
+  // ---------- init ----------
+  fillSelect(document.getElementById("f-categoria"), CATEGORIAS);
+  fillSelect(document.getElementById("f-unidade"), UNIDADES);
+  buildSidebar();
+  selectAccount(BANKS[0].accounts[0].id);
+})();
+</script>
+</body>
+</html>
