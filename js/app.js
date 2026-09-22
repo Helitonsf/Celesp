@@ -75,9 +75,9 @@
   var HEADER_MAP = [
     { field: "dataMov", tests: ["data movimento"] },
     { field: "data", tests: ["data"] },
-    { field: "desc", tests: ["descrição", "descricao"] },
-    { field: "doc", tests: ["doc."] },
-    { field: "valor", tests: ["valor"] },
+    { field: "desc", tests: ["descrição", "descricao", "hist", "lança", "favorecido"] },
+    { field: "doc", tests: ["doc.", "doc", "nro", "número"] },
+    { field: "valor", tests: ["valor", "saída", "entrada", "débito", "crédito"] },
     { field: "categoria", tests: ["categoria"] },
     { field: "unidade", tests: ["unidade"] },
     { field: "nome", tests: ["nome do fornecedor", "fornecedor/cliente", "cliente", "fornecedor", "nome"] },
@@ -544,9 +544,9 @@
   }
 
   function detectHeaderRow(rows){
-    for(var i=0;i<Math.min(rows.length,5);i++){
+    for(var i=0;i<Math.min(rows.length, 30);i++){
       var line = (rows[i]||[]).map(function(c){ return String(c||"").toLowerCase(); }).join("|");
-      if(line.indexOf("data")>-1 || line.indexOf("nome")>-1 || line.indexOf("descri")>-1) return i;
+      if(line.indexOf("data")>-1 && (line.indexOf("valor")>-1 || line.indexOf("descri")>-1 || line.indexOf("hist")>-1)) return i;
     }
     return 0;
   }
