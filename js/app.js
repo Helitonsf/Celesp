@@ -517,8 +517,13 @@
       return y2 + "-" + m2 + "-" + d2;
     }
     if(typeof v === "string"){
-      var m3 = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if(m3) return m3[3] + "-" + m3[2].padStart(2,"0") + "-" + m3[1].padStart(2,"0");
+      var s = v.trim();
+      var p = s.split(/[\/\-]/);
+      if(p.length === 3) {
+        // Assume DD/MM/YYYY or DD/MM/YY
+        var yy = p[2].length === 2 ? "20" + p[2] : p[2];
+        return yy + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+      }
     }
     return "";
   }
@@ -534,6 +539,7 @@
     }
     var n = parseValorInput(s);
     if(isNaN(n)) return null;
+    if(n < 0) sign = "D";
     return { valorNum: Math.abs(n), sign: sign };
   }
 
