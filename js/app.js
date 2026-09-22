@@ -80,7 +80,8 @@
     { field: "valor", tests: ["valor", "saída", "entrada", "débito", "crédito"] },
     { field: "categoria", tests: ["categoria"] },
     { field: "unidade", tests: ["unidade"] },
-    { field: "nome", tests: ["nome do fornecedor", "fornecedor/cliente", "cliente", "fornecedor", "nome"] },
+    { field: "codigo", tests: ["cod", "cód"] },
+    { field: "nome", tests: ["nome", "fornecedor/cliente", "razão", "razao", "cliente", "fornecedor"] },
     { field: "cpf", tests: ["cpf/cnpj", "cpf", "cnpj"] }
   ];
 
