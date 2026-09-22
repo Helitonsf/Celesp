@@ -517,7 +517,7 @@
       return y2 + "-" + m2 + "-" + d2;
     }
     if(typeof v === "string"){
-      var s = v.trim();
+      var s = v.trim().replace(/["']/g, '');
       var p = s.split(/[\/\-]/);
       if(p.length === 3) {
         // Assume DD/MM/YYYY or DD/MM/YY
@@ -530,7 +530,7 @@
 
   function parseValorCell(v){
     if(v === null || v === undefined || v === "") return null;
-    var s = String(v).trim();
+    var s = String(v).trim().replace(/["']/g, '');
     var sign = "C";
     var lastChar = s.slice(-1).toUpperCase();
     if(lastChar === "C" || lastChar === "D"){
@@ -709,11 +709,12 @@
         var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
         
         // Fix for CSVs parsed as a single column by XLSX library (semicolon delimited)
-        if (rows.length > 0 && rows[0].length === 1 && typeof rows[0][0] === 'string' && rows[0][0].indexOf(';') > -1) {
-          rows = rows.map(function(r) {
-            return r[0] ? r[0].split(';') : [];
-          });
-        }
+        rows = rows.map(function(r) {
+          if (r.length === 1 && typeof r[0] === 'string' && r[0].indexOf(';') > -1) {
+            return r[0].split(';');
+          }
+          return r;
+        });
         
         var headerIdx = detectHeaderRow(rows);
         var colMap = buildColumnMap(rows[headerIdx]);
