@@ -880,28 +880,49 @@
   document.getElementById("clear-cadastro").addEventListener("click", clearCurrentTab);
 
   document.getElementById("btn-add-account").addEventListener("click", function() {
-    var acctName = prompt("Digite o nome do Banco, Agência e Conta (ex: Sicoob - Ag 123 Cc 456):");
-    if (acctName && acctName.trim()) {
-      var id = "banco-" + Date.now();
-      var newBank = { 
-        id: id, 
-        label: acctName.trim(), 
-        type: "ledger", 
-        bank: acctName.split(" ")[0].trim() || "Banco", 
-        sheetName: acctName.trim(),
-        hasDataMov: true // habilita o campo de data de movimentação pra todos os novos
-      };
-      var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
-      savedBanks.push(newBank);
-      localStorage.setItem("system_banks", JSON.stringify(savedBanks));
-      
-      // Update MENU_SECTIONS in memory
-      MENU_SECTIONS[1].items = savedBanks;
-      
-      buildSidebar();
-      selectTab(id);
-      populateConcSelect();
+    document.getElementById("modal-bank-ag-cc").value = "";
+    document.getElementById("modal-add-account").style.display = "flex";
+    document.getElementById("modal-bank-ag-cc").focus();
+  });
+
+  document.getElementById("modal-bank-cancel").addEventListener("click", function() {
+    document.getElementById("modal-add-account").style.display = "none";
+  });
+
+  document.getElementById("modal-bank-save").addEventListener("click", function() {
+    var bankSel = document.getElementById("modal-bank-select").value;
+    var agCc = document.getElementById("modal-bank-ag-cc").value.trim();
+    if (!agCc) {
+      alert("Por favor, digite a agência e conta.");
+      return;
     }
+    var acctName = bankSel + " - " + agCc;
+    
+    var id = "banco-" + Date.now();
+    var newBank = { 
+      id: id, 
+      label: acctName, 
+      type: "ledger", 
+      bank: bankSel, 
+      sheetName: acctName,
+      hasDataMov: true
+    };
+    var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
+    savedBanks.push(newBank);
+    localStorage.setItem("system_banks", JSON.stringify(savedBanks));
+    
+    // Update MENU_SECTIONS in memory
+    MENU_SECTIONS[1].items = savedBanks;
+    
+    // Update itemIndex so selectTab works properly for the new tab!
+    newBank.section = MENU_SECTIONS[1].title;
+    itemIndex[id] = newBank;
+    
+    buildSidebar();
+    selectTab(id);
+    populateConcSelect();
+    
+    document.getElementById("modal-add-account").style.display = "none";
   });
 
   // Init
