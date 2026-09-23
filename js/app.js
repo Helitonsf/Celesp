@@ -6,23 +6,7 @@
 
   var savedBanks = JSON.parse(localStorage.getItem("system_banks"));
   if (!savedBanks) {
-    savedBanks = [
-      { id: "sicredi-627", label: "19915-0 · Conta 627", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 19915-0 Conta 627" },
-      { id: "sicredi-7573", label: "26208-6-0 · Conta 7573", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26208-6-0 Conta 7573" },
-      { id: "sicredi-7575", label: "26182-7-0 · Conta 7575", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26182-7-0 Conta 7575" },
-      { id: "sicredi-7574", label: "26135-7-0 · Conta 7574", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26135-7-0 Conta 7574" },
-      { id: "banrisul-637", label: "13953.0-6-0 · Conta 637", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 637" },
-      { id: "banrisul-783", label: "13953.0-6-0 · Conta 783", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 783" },
-      { id: "caixa-3112", label: "000577219519-7 · Conta 3112", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219519-7 Conta 3112", hasDataMov: true },
-      { id: "caixa-2832", label: "000577219469-7 · Conta 2832", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219469-7 Conta 2832", hasDataMov: true },
-      { id: "sicoob-7486", label: "58.289-1 · Conta 7486", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.289-1 Conta 7486" },
-      { id: "sicoob-643",  label: "24432-0 · Conta 643", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 24432-0 Conta 643" },
-      { id: "sicoob-7483", label: "58.282-4 · Conta 7483", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.282-4 Conta 7483" },
-      { id: "sicoob-7485", label: "58.287-5 · Conta 7485", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.287-5 Conta 7485" },
-      { id: "sicoob-7484", label: "58.286-7 · Conta 7484", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.286-7 Conta 7484" },
-      { id: "santander-7836", label: "13007400-1 · Conta 7836", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007400-1 Conta 7836" },
-      { id: "santander-7835", label: "13007403-2 · Conta 7835", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007403-2 Conta 7835" }
-    ];
+    savedBanks = [];
     localStorage.setItem("system_banks", JSON.stringify(savedBanks));
   }
 
@@ -242,6 +226,10 @@
       document.getElementById("import-status-ledger").textContent = "";
       document.getElementById("import-filename-ledger").textContent = "nenhum arquivo escolhido";
       document.getElementById("file-import-ledger").value = "";
+      
+      var delBtn = document.getElementById("delete-acct");
+      if (delBtn) delBtn.style.display = (item.section === "Bancos" ? "inline-block" : "none");
+      
       resetForm();
       renderLedger();
     } 
@@ -879,10 +867,31 @@
   document.getElementById("clear-acct-top").addEventListener("click", clearCurrentTab);
   document.getElementById("clear-cadastro").addEventListener("click", clearCurrentTab);
 
+  document.getElementById("delete-acct").addEventListener("click", function() {
+    if(!currentTab) return;
+    if(confirm("ATENÇÃO: Você tem certeza que deseja EXCLUIR esta conta inteira e todos os seus lançamentos? Essa ação não pode ser desfeita!")) {
+      saveEntries(currentTab, []); // clear entries
+      var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
+      savedBanks = savedBanks.filter(function(b) { return b.id !== currentTab; });
+      localStorage.setItem("system_banks", JSON.stringify(savedBanks));
+      
+      MENU_SECTIONS[1].items = savedBanks;
+      delete itemIndex[currentTab];
+      
+      buildSidebar();
+      if (savedBanks.length > 0) selectTab(savedBanks[0].id);
+      else selectTab("master");
+      
+      populateConcSelect();
+      toast("Conta excluída com sucesso.");
+    }
+  });
+
   document.getElementById("btn-add-account").addEventListener("click", function() {
-    document.getElementById("modal-bank-ag-cc").value = "";
+    document.getElementById("modal-bank-ag").value = "";
+    document.getElementById("modal-bank-cc").value = "";
     document.getElementById("modal-add-account").style.display = "flex";
-    document.getElementById("modal-bank-ag-cc").focus();
+    document.getElementById("modal-bank-select").focus();
   });
 
   document.getElementById("modal-bank-cancel").addEventListener("click", function() {
@@ -891,12 +900,16 @@
 
   document.getElementById("modal-bank-save").addEventListener("click", function() {
     var bankSel = document.getElementById("modal-bank-select").value;
-    var agCc = document.getElementById("modal-bank-ag-cc").value.trim();
-    if (!agCc) {
-      alert("Por favor, digite a agência e conta.");
+    var ag = document.getElementById("modal-bank-ag").value.trim();
+    var cc = document.getElementById("modal-bank-cc").value.trim();
+    
+    if (!ag || !cc) {
+      alert("Por favor, preencha a agência e a conta.");
       return;
     }
-    var acctName = bankSel + " - " + agCc;
+    
+    // Label follows format: "Ag 1234 Conta 5678-9"
+    var acctName = "Ag " + ag + " Conta " + cc;
     
     var id = "banco-" + Date.now();
     var newBank = { 
@@ -904,7 +917,7 @@
       label: acctName, 
       type: "ledger", 
       bank: bankSel, 
-      sheetName: acctName,
+      sheetName: bankSel + " " + acctName,
       hasDataMov: true
     };
     var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
@@ -914,7 +927,7 @@
     // Update MENU_SECTIONS in memory
     MENU_SECTIONS[1].items = savedBanks;
     
-    // Update itemIndex so selectTab works properly for the new tab!
+    // Update itemIndex so selectTab works properly for the new tab
     newBank.section = MENU_SECTIONS[1].title;
     itemIndex[id] = newBank;
     
@@ -963,7 +976,10 @@
   refreshFormOptions();
   buildSidebar();
   populateConcSelect();
-  // Select first ledger by default
-  selectTab(MENU_SECTIONS[1].items[0].id);
+  if (MENU_SECTIONS[1].items && MENU_SECTIONS[1].items.length > 0) {
+    selectTab(MENU_SECTIONS[1].items[0].id);
+  } else {
+    selectTab("master");
+  }
 
 })();
