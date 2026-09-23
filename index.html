@@ -15,6 +15,9 @@
   <nav class="sidebar" id="sidebar">
     <div class="brand">TI · Netdata / Único<strong>Lançamentos — Agosto</strong></div>
     <div id="sidebar-menu"></div>
+    <div style="padding: 15px;">
+      <button id="btn-add-account" class="ghost" style="width: 100%; border: 1px dashed var(--paper-line); color: var(--paper-text-light); padding: 8px; font-size: 13px;">+ Nova Conta</button>
+    </div>
   </nav>
 
   <main>
@@ -187,6 +190,8 @@
           </label>
           <input type="file" id="file-import-conc" accept=".xlsx,.xlsm,.xls,.csv,.txt,.ofx" style="display:none">
           <span class="hint" id="import-filename-conc">nenhum arquivo escolhido</span>
+          
+          <input type="text" id="conc-filter" placeholder="Filtrar Extrato por CNPJ ou Palavra..." style="margin-left:auto; width:280px; padding:8px; border:1px solid var(--paper-line); border-radius:var(--radius);">
         </div>
         <div id="import-status-conc" class="hint" style="margin-top:10px"></div>
       </section>
