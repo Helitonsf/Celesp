@@ -4,6 +4,28 @@
   var DEFAULT_CATEGORIAS = ["Aplicações","Crédito Bloqueado","Despesa","Pagamento","Pendente","Recebimento","Resgate","Saldo do dia"];
   var DEFAULT_UNIDADES = ["Matriz","Tubarão","Chapecó","Criciúma","Florianópolis","Passo Fundo"];
 
+  var savedBanks = JSON.parse(localStorage.getItem("system_banks"));
+  if (!savedBanks) {
+    savedBanks = [
+      { id: "sicredi-627", label: "19915-0 · Conta 627", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 19915-0 Conta 627" },
+      { id: "sicredi-7573", label: "26208-6-0 · Conta 7573", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26208-6-0 Conta 7573" },
+      { id: "sicredi-7575", label: "26182-7-0 · Conta 7575", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26182-7-0 Conta 7575" },
+      { id: "sicredi-7574", label: "26135-7-0 · Conta 7574", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26135-7-0 Conta 7574" },
+      { id: "banrisul-637", label: "13953.0-6-0 · Conta 637", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 637" },
+      { id: "banrisul-783", label: "13953.0-6-0 · Conta 783", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 783" },
+      { id: "caixa-3112", label: "000577219519-7 · Conta 3112", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219519-7 Conta 3112", hasDataMov: true },
+      { id: "caixa-2832", label: "000577219469-7 · Conta 2832", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219469-7 Conta 2832", hasDataMov: true },
+      { id: "sicoob-7486", label: "58.289-1 · Conta 7486", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.289-1 Conta 7486" },
+      { id: "sicoob-643",  label: "24432-0 · Conta 643", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 24432-0 Conta 643" },
+      { id: "sicoob-7483", label: "58.282-4 · Conta 7483", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.282-4 Conta 7483" },
+      { id: "sicoob-7485", label: "58.287-5 · Conta 7485", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.287-5 Conta 7485" },
+      { id: "sicoob-7484", label: "58.286-7 · Conta 7484", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.286-7 Conta 7484" },
+      { id: "santander-7836", label: "13007400-1 · Conta 7836", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007400-1 Conta 7836" },
+      { id: "santander-7835", label: "13007403-2 · Conta 7835", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007403-2 Conta 7835" }
+    ];
+    localStorage.setItem("system_banks", JSON.stringify(savedBanks));
+  }
+
   var MENU_SECTIONS = [
     {
       title: "Visão Geral & Fechamento",
@@ -14,23 +36,7 @@
     },
     {
       title: "Bancos",
-      items: [
-        { id: "sicredi-627", label: "19915-0 · Conta 627", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 19915-0 Conta 627" },
-        { id: "sicredi-7573", label: "26208-6-0 · Conta 7573", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26208-6-0 Conta 7573" },
-        { id: "sicredi-7575", label: "26182-7-0 · Conta 7575", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26182-7-0 Conta 7575" },
-        { id: "sicredi-7574", label: "26135-7-0 · Conta 7574", type: "ledger", bank: "Sicredi", sheetName: "Sicredi 26135-7-0 Conta 7574" },
-        { id: "banrisul-637", label: "13953.0-6-0 · Conta 637", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 637" },
-        { id: "banrisul-783", label: "13953.0-6-0 · Conta 783", type: "ledger", bank: "Banrisul", sheetName: "Banrisul 13953.0-6-0 Conta 783" },
-        { id: "caixa-3112", label: "000577219519-7 · Conta 3112", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219519-7 Conta 3112", hasDataMov: true },
-        { id: "caixa-2832", label: "000577219469-7 · Conta 2832", type: "ledger", bank: "CAIXA", sheetName: "CAIXA 000577219469-7 Conta 2832", hasDataMov: true },
-        { id: "sicoob-7486", label: "58.289-1 · Conta 7486", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.289-1 Conta 7486" },
-        { id: "sicoob-643",  label: "24432-0 · Conta 643", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 24432-0 Conta 643" },
-        { id: "sicoob-7483", label: "58.282-4 · Conta 7483", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.282-4 Conta 7483" },
-        { id: "sicoob-7485", label: "58.287-5 · Conta 7485", type: "ledger", bank: "SICOOB", sheetName: "SICOOB  58.287-5 Conta 7485" },
-        { id: "sicoob-7484", label: "58.286-7 · Conta 7484", type: "ledger", bank: "SICOOB", sheetName: "SICOOB 58.286-7 Conta 7484" },
-        { id: "santander-7836", label: "13007400-1 · Conta 7836", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007400-1 Conta 7836" },
-        { id: "santander-7835", label: "13007403-2 · Conta 7835", type: "ledger", bank: "SANTANDER", sheetName: "SANTANDER 13007403-2 Conta 7835" }
-      ]
+      items: savedBanks
     },
     {
       title: "Unidades",
@@ -739,10 +745,15 @@
           return;
         }
 
+        var filterText = (document.getElementById("conc-filter").value || "").toLowerCase().trim();
+
         var extrato = [];
         for(var r = headerIdx + 1; r < rows.length; r++){
           var row = rows[r];
           if(!row || row.every(function(c){ return c === "" || c === null || c === undefined; })) continue;
+          
+          var rowText = row.join(" ").toLowerCase();
+          if(filterText && rowText.indexOf(filterText) === -1) continue;
           
           var isoDate = excelDateToIso(row[colMap.data]);
           var parsedValor = parseValorCell(row[colMap.valor]);
@@ -751,12 +762,19 @@
           extrato.push({
             data: isoDate,
             valorNum: parsedValor.valorNum,
-            sign: parsedValor.sign
+            sign: parsedValor.sign,
+            fullText: rowText
           });
         }
 
         // Lançamentos do Sistema
         var sistema = loadEntries(acctId);
+        if (filterText) {
+          sistema = sistema.filter(function(s) {
+            var sText = [s.desc, s.nome, s.cpf, s.doc].join(" ").toLowerCase();
+            return sText.indexOf(filterText) > -1;
+          });
+        }
         // Marcador para evitar que o mesmo lançamento case duas vezes
         sistema.forEach(function(s){ s._matched = false; });
         
@@ -860,6 +878,31 @@
   document.getElementById("clear-acct").addEventListener("click", clearCurrentTab);
   document.getElementById("clear-acct-top").addEventListener("click", clearCurrentTab);
   document.getElementById("clear-cadastro").addEventListener("click", clearCurrentTab);
+
+  document.getElementById("btn-add-account").addEventListener("click", function() {
+    var acctName = prompt("Digite o nome do Banco, Agência e Conta (ex: Sicoob - Ag 123 Cc 456):");
+    if (acctName && acctName.trim()) {
+      var id = "banco-" + Date.now();
+      var newBank = { 
+        id: id, 
+        label: acctName.trim(), 
+        type: "ledger", 
+        bank: acctName.split(" ")[0].trim() || "Banco", 
+        sheetName: acctName.trim(),
+        hasDataMov: true // habilita o campo de data de movimentação pra todos os novos
+      };
+      var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
+      savedBanks.push(newBank);
+      localStorage.setItem("system_banks", JSON.stringify(savedBanks));
+      
+      // Update MENU_SECTIONS in memory
+      MENU_SECTIONS[1].items = savedBanks;
+      
+      buildSidebar();
+      selectTab(id);
+      populateConcSelect();
+    }
+  });
 
   // Init
   function fillSelect(sel, options){
