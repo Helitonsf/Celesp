@@ -225,7 +225,7 @@
     
     var title = item.bank ? (item.bank + " — " + item.label) : item.label;
     document.getElementById("view-title").textContent = title;
-    document.getElementById("view-sub").textContent = item.section.toUpperCase() + " · AGOSTO";
+    document.getElementById("view-sub").textContent = item.section.toUpperCase();
 
     // Hide all views
     document.getElementById("view-ledger").style.display = "none";
