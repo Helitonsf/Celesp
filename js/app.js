@@ -10,6 +10,12 @@
     localStorage.setItem("system_banks", JSON.stringify(savedBanks));
   }
 
+  var savedUnits = JSON.parse(localStorage.getItem("system_units"));
+  if (!savedUnits) {
+    savedUnits = [];
+    localStorage.setItem("system_units", JSON.stringify(savedUnits));
+  }
+
   var MENU_SECTIONS = [
     {
       title: "Visão Geral & Fechamento",
@@ -24,14 +30,7 @@
     },
     {
       title: "Unidades",
-      items: [
-        { id: "unid-matriz", label: "Matriz", type: "ledger", bank: "Unidade", sheetName: "Matriz" },
-        { id: "unid-tubarao", label: "Tubarão", type: "ledger", bank: "Unidade", sheetName: "Tubarão" },
-        { id: "unid-floripa", label: "Florianópolis", type: "ledger", bank: "Unidade", sheetName: "Florianopolis" },
-        { id: "unid-passofundo", label: "Passo Fundo", type: "ledger", bank: "Unidade", sheetName: "Passo Fundo" },
-        { id: "unid-criciuma", label: "Criciúma", type: "ledger", bank: "Unidade", sheetName: "Criciuma" },
-        { id: "unid-chapeco", label: "Chapecó", type: "ledger", bank: "Unidade", sheetName: "Chapecó" }
-      ]
+      items: savedUnits
     },
     {
       title: "Outras Movimentações",
@@ -228,7 +227,7 @@
       document.getElementById("file-import-ledger").value = "";
       
       var delBtn = document.getElementById("delete-acct");
-      if (delBtn) delBtn.style.display = (item.section === "Bancos" ? "inline-block" : "none");
+      if (delBtn) delBtn.style.display = ((item.section === "Bancos" || item.section === "Unidades") ? "inline-block" : "none");
       
       resetForm();
       renderLedger();
@@ -868,22 +867,32 @@
   document.getElementById("clear-cadastro").addEventListener("click", clearCurrentTab);
 
   document.getElementById("delete-acct").addEventListener("click", function() {
-    if(!currentTab) return;
+    if(!currentTab || !itemIndex[currentTab]) return;
+    var section = itemIndex[currentTab].section;
+    
     if(confirm("ATENÇÃO: Você tem certeza que deseja EXCLUIR esta conta inteira e todos os seus lançamentos? Essa ação não pode ser desfeita!")) {
       saveEntries(currentTab, []); // clear entries
-      var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
-      savedBanks = savedBanks.filter(function(b) { return b.id !== currentTab; });
-      localStorage.setItem("system_banks", JSON.stringify(savedBanks));
       
-      MENU_SECTIONS[1].items = savedBanks;
+      if (section === "Bancos") {
+        var savedBanks = JSON.parse(localStorage.getItem("system_banks")) || [];
+        savedBanks = savedBanks.filter(function(b) { return b.id !== currentTab; });
+        localStorage.setItem("system_banks", JSON.stringify(savedBanks));
+        MENU_SECTIONS[1].items = savedBanks;
+      } else if (section === "Unidades") {
+        var savedUnits = JSON.parse(localStorage.getItem("system_units")) || [];
+        savedUnits = savedUnits.filter(function(b) { return b.id !== currentTab; });
+        localStorage.setItem("system_units", JSON.stringify(savedUnits));
+        MENU_SECTIONS[2].items = savedUnits;
+      }
+      
       delete itemIndex[currentTab];
       
       buildSidebar();
-      if (savedBanks.length > 0) selectTab(savedBanks[0].id);
+      if (MENU_SECTIONS[1].items.length > 0) selectTab(MENU_SECTIONS[1].items[0].id);
       else selectTab("master");
       
       populateConcSelect();
-      toast("Conta excluída com sucesso.");
+      toast("Conta/Unidade excluída com sucesso.");
     }
   });
 
@@ -936,6 +945,48 @@
     populateConcSelect();
     
     document.getElementById("modal-add-account").style.display = "none";
+  });
+
+  document.getElementById("btn-add-unit").addEventListener("click", function() {
+    document.getElementById("modal-unit-name").value = "";
+    document.getElementById("modal-add-unit").style.display = "flex";
+    document.getElementById("modal-unit-name").focus();
+  });
+
+  document.getElementById("modal-unit-cancel").addEventListener("click", function() {
+    document.getElementById("modal-add-unit").style.display = "none";
+  });
+
+  document.getElementById("modal-unit-save").addEventListener("click", function() {
+    var unitName = document.getElementById("modal-unit-name").value.trim();
+    if (!unitName) {
+      alert("Por favor, digite o nome da unidade.");
+      return;
+    }
+    
+    var id = "unid-" + Date.now();
+    var newUnit = { 
+      id: id, 
+      label: unitName, 
+      type: "ledger", 
+      bank: "Unidade", 
+      sheetName: unitName,
+      hasDataMov: false
+    };
+    
+    var savedUnits = JSON.parse(localStorage.getItem("system_units")) || [];
+    savedUnits.push(newUnit);
+    localStorage.setItem("system_units", JSON.stringify(savedUnits));
+    
+    MENU_SECTIONS[2].items = savedUnits;
+    newUnit.section = MENU_SECTIONS[2].title;
+    itemIndex[id] = newUnit;
+    
+    buildSidebar();
+    selectTab(id);
+    populateConcSelect();
+    
+    document.getElementById("modal-add-unit").style.display = "none";
   });
 
   // Init
