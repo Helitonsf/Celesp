@@ -77,27 +77,21 @@
   var currentTab = null;
   var editingId = null;
 
+  var dataCache = {};
+
   // ---------- storage ----------
   function storageKey(id){ return "lancamentos:agosto:" + id; }
 
   function loadEntries(id){
-    try {
-      var raw = localStorage.getItem(storageKey(id));
-      if (!raw) return [];
-      if (typeof LZString !== "undefined" && !raw.startsWith("[")) {
-         raw = LZString.decompressFromUTF16(raw);
-      }
-      return raw ? JSON.parse(raw) : [];
-    } catch(e){ return []; }
+    return dataCache[id] || [];
   }
 
   function saveEntries(id, entries){
+    dataCache[id] = entries;
     try {
-      var str = JSON.stringify(entries);
-      if (typeof LZString !== "undefined") {
-         str = LZString.compressToUTF16(str);
-      }
-      localStorage.setItem(storageKey(id), str);
+      localforage.setItem(storageKey(id), entries).catch(function(err){
+        console.error("Erro no saveEntries (background):", err);
+      });
       return true;
     } catch(e){ return false; }
   }
@@ -1237,13 +1231,50 @@
     refreshFormOptions();
   };
 
-  refreshFormOptions();
-  buildSidebar();
-  populateConcSelect();
-  if (MENU_SECTIONS[1].items && MENU_SECTIONS[1].items.length > 0) {
-    selectTab(MENU_SECTIONS[1].items[0].id);
-  } else {
-    selectTab("master");
+  function initApp() {
+    refreshFormOptions();
+    buildSidebar();
+    populateConcSelect();
+    if (MENU_SECTIONS[1].items && MENU_SECTIONS[1].items.length > 0) {
+      selectTab(MENU_SECTIONS[1].items[0].id);
+    } else {
+      selectTab("master");
+    }
   }
+
+  // Carrega todos os dados do IndexedDB (localforage) antes de iniciar
+  var allIds = Object.keys(itemIndex);
+  Promise.all(allIds.map(function(id) {
+    return localforage.getItem(storageKey(id)).then(function(val) {
+      if (val) {
+        dataCache[id] = val;
+      } else {
+        // Migration from old localStorage
+        try {
+          var old = localStorage.getItem(storageKey(id));
+          if (old) {
+            var raw = old;
+            if (typeof LZString !== "undefined" && !raw.startsWith("[")) {
+               raw = LZString.decompressFromUTF16(raw);
+            }
+            var parsed = raw ? JSON.parse(raw) : [];
+            dataCache[id] = parsed;
+            // Migra para o IndexedDB assincronamente e remove do localStorage (opcional)
+            localforage.setItem(storageKey(id), parsed);
+            localStorage.removeItem(storageKey(id));
+          } else {
+            dataCache[id] = [];
+          }
+        } catch(e) {
+          dataCache[id] = [];
+        }
+      }
+    });
+  })).then(function() {
+    initApp();
+  }).catch(function(err) {
+    console.error("Erro na inicialização:", err);
+    initApp(); // fallback em caso de erro extremo
+  });
 
 })();
