@@ -141,17 +141,66 @@
     var wrap = document.getElementById("sidebar-menu");
     wrap.innerHTML = "";
     MENU_SECTIONS.forEach(function(sec){
+      var secHeader = document.createElement("div");
+      secHeader.style.display = "flex";
+      secHeader.style.justifyContent = "space-between";
+      secHeader.style.alignItems = "center";
+      secHeader.style.marginTop = "22px";
+      secHeader.style.marginBottom = "6px";
+      secHeader.style.padding = "0 10px";
+
       var secTitle = document.createElement("div");
-      secTitle.style.marginTop = "22px";
-      secTitle.style.marginBottom = "6px";
-      secTitle.style.padding = "0 10px";
       secTitle.style.fontSize = "11px";
       secTitle.style.color = "#C9C2AD";
       secTitle.style.fontWeight = "700";
       secTitle.style.textTransform = "uppercase";
       secTitle.style.letterSpacing = "0.05em";
       secTitle.textContent = sec.title;
-      wrap.appendChild(secTitle);
+      secHeader.appendChild(secTitle);
+
+      if (sec.title === "Bancos") {
+        var addAcctBtn = document.createElement("button");
+        addAcctBtn.textContent = "+";
+        addAcctBtn.className = "ghost";
+        addAcctBtn.style.padding = "0";
+        addAcctBtn.style.width = "20px";
+        addAcctBtn.style.height = "20px";
+        addAcctBtn.style.lineHeight = "1";
+        addAcctBtn.style.border = "1px solid var(--paper-line)";
+        addAcctBtn.style.display = "flex";
+        addAcctBtn.style.justifyContent = "center";
+        addAcctBtn.style.alignItems = "center";
+        addAcctBtn.style.cursor = "pointer";
+        addAcctBtn.style.fontSize = "14px";
+        addAcctBtn.title = "Nova Conta";
+        addAcctBtn.addEventListener("click", function(){
+           var btn = document.getElementById("btn-add-account");
+           if(btn) btn.click();
+        });
+        secHeader.appendChild(addAcctBtn);
+      } else if (sec.title === "Unidades") {
+        var addUnitBtn = document.createElement("button");
+        addUnitBtn.textContent = "+";
+        addUnitBtn.className = "ghost";
+        addUnitBtn.style.padding = "0";
+        addUnitBtn.style.width = "20px";
+        addUnitBtn.style.height = "20px";
+        addUnitBtn.style.lineHeight = "1";
+        addUnitBtn.style.border = "1px solid var(--paper-line)";
+        addUnitBtn.style.display = "flex";
+        addUnitBtn.style.justifyContent = "center";
+        addUnitBtn.style.alignItems = "center";
+        addUnitBtn.style.cursor = "pointer";
+        addUnitBtn.style.fontSize = "14px";
+        addUnitBtn.title = "Nova Unidade";
+        addUnitBtn.addEventListener("click", function(){
+           var btn = document.getElementById("btn-add-unit");
+           if(btn) btn.click();
+        });
+        secHeader.appendChild(addUnitBtn);
+      }
+
+      wrap.appendChild(secHeader);
 
       var subGroups = {};
       sec.items.forEach(function(item){
