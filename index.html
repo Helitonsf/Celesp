@@ -161,15 +161,15 @@
       
       <!-- Top Actions (like Excel) -->
       <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <button class="primary" style="flex:1; background:#2B3A42; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">1 > Distribuir por Unidade</button>
-        <button class="primary" style="flex:1; background:#28a745; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">2 > Gerar TXTs (formato atual)</button>
-        <button class="primary" style="flex:1; background:#8e44ad; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">3 > Gerar TXTs (Único)</button>
+        <button id="btn-master-distribuir" class="primary" style="flex:1; background:#2B3A42; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">1 > Distribuir por Unidade</button>
+        <button id="btn-master-txt-atual" class="primary" style="flex:1; background:#28a745; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">2 > Gerar TXTs (formato atual)</button>
+        <button id="btn-master-txt-unico" class="primary" style="flex:1; background:#8e44ad; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">3 > Gerar TXTs (Único)</button>
       </div>
 
       <div style="display:flex; gap:20px; align-items:flex-start;">
         <!-- Left Table: Unidades -->
-        <section class="panel" style="flex:1; padding:0; overflow:hidden;">
-          <table class="ledger" style="margin:0; border:none;">
+        <section class="panel" style="flex:1; padding:0; overflow-x:auto;">
+          <table class="ledger" style="margin:0; border:none; min-width:auto;">
             <thead>
               <tr style="background:#2B3A42; color:#fff;">
                 <th style="color:#fff;">Unidade</th>
@@ -185,8 +185,8 @@
         </section>
 
         <!-- Right Table: Bancos e Outros -->
-        <section class="panel" style="flex:1; padding:0; overflow:hidden;">
-          <table class="ledger" style="margin:0; border:none;">
+        <section class="panel" style="flex:1; padding:0; overflow-x:auto;">
+          <table class="ledger" style="margin:0; border:none; min-width:auto;">
             <thead>
               <tr style="background:#2B3A42; color:#fff;">
                 <th style="color:#fff;">Banco</th>
