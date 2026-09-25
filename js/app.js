@@ -64,7 +64,7 @@
   var HEADER_MAP = [
     { field: "dataMov", tests: ["data movimento"] },
     { field: "data", tests: ["data"] },
-    { field: "desc", tests: ["descrição", "descricao", "hist", "lança", "favorecido", "natureza", "transação"] },
+    { field: "desc", tests: ["descrição", "descricao", "hist", "lança", "favorecido", "natureza"] },
     { field: "doc", tests: ["doc.", "doc", "nro", "número"] },
     { field: "valor", tests: ["valor", "saída", "entrada", "débito", "crédito"] },
     { field: "categoria", tests: ["categoria"] },
@@ -83,13 +83,21 @@
   function loadEntries(id){
     try {
       var raw = localStorage.getItem(storageKey(id));
+      if (!raw) return [];
+      if (typeof LZString !== "undefined" && !raw.startsWith("[")) {
+         raw = LZString.decompressFromUTF16(raw);
+      }
       return raw ? JSON.parse(raw) : [];
     } catch(e){ return []; }
   }
 
   function saveEntries(id, entries){
     try {
-      localStorage.setItem(storageKey(id), JSON.stringify(entries));
+      var str = JSON.stringify(entries);
+      if (typeof LZString !== "undefined") {
+         str = LZString.compressToUTF16(str);
+      }
+      localStorage.setItem(storageKey(id), str);
       return true;
     } catch(e){ return false; }
   }
@@ -535,6 +543,7 @@
         var obj = {
           id: item.id,
           label: item.label,
+          bank: item.bank,
           classificados: classificados,
           pendentes: pendentes,
           total: total,
@@ -711,7 +720,10 @@
             var valorCell = colMap.valor !== undefined ? row[colMap.valor] : "";
             var parsedValor = parseValorCell(valorCell);
             var desc = colMap.desc !== undefined ? String(row[colMap.desc] || "").trim() : "";
-            if(!isoDate || !parsedValor || !desc) continue;
+            if (!desc && colMap.nome !== undefined) desc = String(row[colMap.nome] || "").trim();
+            if (!desc) desc = "SEM DESCRIÇÃO";
+            
+            if(!isoDate || !parsedValor) continue;
 
             imported.push({
               id: "e" + Date.now() + Math.random().toString(36).slice(2,7) + r,
