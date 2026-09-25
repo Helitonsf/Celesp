@@ -580,8 +580,12 @@
       statsBancos.forEach(function(st) {
         var tr = document.createElement("tr");
         var pendColor = st.pendentes > 0 ? "val-d" : "";
+        var nameHtml = escapeHtml(st.label);
+        if (st.bank && st.bank !== "Unidade" && st.bank !== "Movimento") {
+            nameHtml = '<div style="font-weight:600;">' + escapeHtml(st.bank) + '</div><div style="font-size:10.5px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">' + escapeHtml(st.label) + '</div>';
+        }
         tr.innerHTML = 
-          '<td>' + escapeHtml(st.label) + '</td>' +
+          '<td>' + nameHtml + '</td>' +
           '<td style="text-align:center;" class="val-c">' + st.classificados + '</td>' +
           '<td style="text-align:center;" class="' + pendColor + '">' + st.pendentes + '</td>' +
           '<td style="text-align:center; font-weight:600;">' + st.total + '</td>';
@@ -771,13 +775,18 @@
            finalEntries = unique;
         }
 
-        saveEntries(currentTab, finalEntries);
+        var ok = saveEntries(currentTab, finalEntries);
         
         if (isLedger) renderLedger();
         else renderCadastro();
         
-        statusEl.textContent = imported.length + " item(ns) importado(s).";
-        toast("Importação concluída.");
+        if (ok) {
+          statusEl.textContent = imported.length + " item(ns) importado(s).";
+          toast("Importação concluída.");
+        } else {
+          statusEl.textContent = "Erro: Arquivo muito grande para o armazenamento do navegador.";
+          toast("Erro: Limite de armazenamento excedido.");
+        }
       } catch(err){
         statusEl.textContent = "Erro ao ler arquivo: " + (err.message || "desconhecido");
       }
