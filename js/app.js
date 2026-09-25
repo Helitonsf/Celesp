@@ -644,9 +644,14 @@
         wb.SheetNames.forEach(function(sn){
           if(sn === sheetName || sn.toLowerCase().trim() === sheetName.toLowerCase().trim()) foundSheet = sn;
         });
+        
+        // Se não encontrar o nome exato mas a planilha só tiver 1 aba, assume que é ela
+        if(!foundSheet && wb.SheetNames.length === 1) {
+          foundSheet = wb.SheetNames[0];
+        }
 
         if(!foundSheet){
-          statusEl.textContent = "Não encontrei a aba \"" + sheetName + "\" neste arquivo.";
+          statusEl.textContent = "Não encontrei a aba \"" + sheetName + "\" neste arquivo. Abas encontradas: " + wb.SheetNames.join(", ");
           return;
         }
 
@@ -1058,9 +1063,9 @@
   });
 
   document.getElementById("modal-bank-save").addEventListener("click", function() {
-    var bankSel = document.getElementById("modal-bank-select").value;
-    var ag = document.getElementById("modal-bank-ag").value.trim();
-    var cc = document.getElementById("modal-bank-cc").value.trim();
+    var bankSel = document.getElementById("modal-bank-select").value.toUpperCase();
+    var ag = document.getElementById("modal-bank-ag").value.trim().toUpperCase();
+    var cc = document.getElementById("modal-bank-cc").value.trim().toUpperCase();
     
     if (!ag || !cc) {
       alert("Por favor, preencha a agência e a conta.");
@@ -1068,7 +1073,7 @@
     }
     
     // Label follows format: "Ag 1234 Conta 5678-9"
-    var acctName = "Ag " + ag + " Conta " + cc;
+    var acctName = "AG " + ag + " CONTA " + cc;
     
     var id = "banco-" + Date.now();
     var newBank = { 
@@ -1108,7 +1113,7 @@
   });
 
   document.getElementById("modal-unit-save").addEventListener("click", function() {
-    var unitName = document.getElementById("modal-unit-name").value.trim();
+    var unitName = document.getElementById("modal-unit-name").value.toUpperCase().trim();
     if (!unitName) {
       alert("Por favor, digite o nome da unidade.");
       return;
