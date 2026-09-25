@@ -64,7 +64,7 @@
   var HEADER_MAP = [
     { field: "dataMov", tests: ["data movimento"] },
     { field: "data", tests: ["data"] },
-    { field: "desc", tests: ["descrição", "descricao", "hist", "lança", "favorecido"] },
+    { field: "desc", tests: ["descrição", "descricao", "hist", "lança", "favorecido", "natureza", "transação"] },
     { field: "doc", tests: ["doc.", "doc", "nro", "número"] },
     { field: "valor", tests: ["valor", "saída", "entrada", "débito", "crédito"] },
     { field: "categoria", tests: ["categoria"] },
@@ -159,19 +159,13 @@
       secHeader.appendChild(secTitle);
 
       if (sec.title === "Bancos") {
-        var addAcctBtn = document.createElement("button");
+        var addAcctBtn = document.createElement("span");
         addAcctBtn.textContent = "+";
-        addAcctBtn.className = "ghost";
-        addAcctBtn.style.padding = "0";
-        addAcctBtn.style.width = "20px";
-        addAcctBtn.style.height = "20px";
-        addAcctBtn.style.lineHeight = "1";
-        addAcctBtn.style.border = "1px solid var(--paper-line)";
-        addAcctBtn.style.display = "flex";
-        addAcctBtn.style.justifyContent = "center";
-        addAcctBtn.style.alignItems = "center";
         addAcctBtn.style.cursor = "pointer";
-        addAcctBtn.style.fontSize = "14px";
+        addAcctBtn.style.fontSize = "15px";
+        addAcctBtn.style.fontWeight = "bold";
+        addAcctBtn.style.color = "#C9C2AD";
+        addAcctBtn.style.lineHeight = "1";
         addAcctBtn.title = "Nova Conta";
         addAcctBtn.addEventListener("click", function(){
            var btn = document.getElementById("btn-add-account");
@@ -179,19 +173,13 @@
         });
         secHeader.appendChild(addAcctBtn);
       } else if (sec.title === "Unidades") {
-        var addUnitBtn = document.createElement("button");
+        var addUnitBtn = document.createElement("span");
         addUnitBtn.textContent = "+";
-        addUnitBtn.className = "ghost";
-        addUnitBtn.style.padding = "0";
-        addUnitBtn.style.width = "20px";
-        addUnitBtn.style.height = "20px";
-        addUnitBtn.style.lineHeight = "1";
-        addUnitBtn.style.border = "1px solid var(--paper-line)";
-        addUnitBtn.style.display = "flex";
-        addUnitBtn.style.justifyContent = "center";
-        addUnitBtn.style.alignItems = "center";
         addUnitBtn.style.cursor = "pointer";
-        addUnitBtn.style.fontSize = "14px";
+        addUnitBtn.style.fontSize = "15px";
+        addUnitBtn.style.fontWeight = "bold";
+        addUnitBtn.style.color = "#C9C2AD";
+        addUnitBtn.style.lineHeight = "1";
         addUnitBtn.title = "Nova Unidade";
         addUnitBtn.addEventListener("click", function(){
            var btn = document.getElementById("btn-add-unit");
