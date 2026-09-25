@@ -423,7 +423,8 @@
       tr.innerHTML = "<td colspan='2' class='empty'>Nenhum cadastro encontrado. Importe da planilha para preencher.</td>";
       body.appendChild(tr);
     } else {
-      entries.forEach(function(e) {
+      var toRender = entries.slice(0, 500);
+      toRender.forEach(function(e) {
         var tr = document.createElement("tr");
         var nameCell = document.createElement("td");
         nameCell.textContent = e.nome || e.desc || e.categoria || "Sem nome";
@@ -442,6 +443,12 @@
         tr.appendChild(actionsTd);
         body.appendChild(tr);
       });
+      
+      if (entries.length > 500) {
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td colspan='2' class='hint' style='text-align:center; padding:15px;'>Mostrando os primeiros 500 itens de um total de <strong>" + entries.length + "</strong> cadastros.</td>";
+        body.appendChild(tr);
+      }
     }
     refreshCounts();
   }
@@ -547,13 +554,24 @@
 
   function buildColumnMap(headerRow){
     var map = {};
+    if(!headerRow) return map;
     headerRow.forEach(function(h, idx){
       var text = String(h||"").toLowerCase().trim();
       if(!text) return;
       HEADER_MAP.forEach(function(spec){
-        if(map[spec.field] !== undefined) return;
         for(var t=0;t<spec.tests.length;t++){
-          if(text.indexOf(spec.tests[t]) > -1){ map[spec.field] = idx; return; }
+          if(text.indexOf(spec.tests[t]) > -1){ 
+            if (spec.field === 'nome' && map.nome !== undefined) {
+               if (text.indexOf('razão') > -1 || text.indexOf('razao') > -1 || text.indexOf('nome') > -1) {
+                  map.nome = idx; // sobrescreve se achar algo mais forte
+               }
+            } else {
+               if (map[spec.field] === undefined) {
+                 map[spec.field] = idx;
+               }
+            }
+            return;
+          }
         }
       });
     });
@@ -615,11 +633,21 @@
               cpf: colMap.cpf !== undefined ? String(row[colMap.cpf] || "").trim() : ""
             });
           } else {
-            // Importando Cadastro (apenas pega nome ou descrição dependendo do que achar)
             var cadName = "";
             if (colMap.nome !== undefined && row[colMap.nome]) cadName = row[colMap.nome];
             else if (colMap.desc !== undefined && row[colMap.desc]) cadName = row[colMap.desc];
-            else if (row[0]) cadName = row[0]; // fallback to first column
+            else {
+              // Try to find the first column that looks like a name (non-numeric string)
+              var foundStr = "";
+              for (var c = 0; c < row.length; c++) {
+                if (row[c] && isNaN(row[c]) && String(row[c]).trim().length > 1) { 
+                  foundStr = row[c]; 
+                  break; 
+                }
+              }
+              // Se não achou string clara, pega a segunda coluna se tiver, senão a primeira
+              cadName = foundStr || (row.length > 1 ? row[1] : row[0]);
+            }
             
             if(!String(cadName).trim()) continue;
             
