@@ -914,6 +914,80 @@
     document.getElementById("submit-btn").textContent = "Adicionar lançamento";
   });
 
+  function downloadTxt(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  document.getElementById("btn-master-distribuir").addEventListener("click", function() {
+    if(!confirm("Deseja distribuir os lançamentos dos bancos para as abas de Unidade?\nIsso vai copiar automaticamente todos os lançamentos que têm a coluna 'Unidade' preenchida.")) return;
+    
+    var mapUnidades = {};
+    MENU_SECTIONS[2].items.forEach(function(u) { mapUnidades[u.label.toLowerCase().trim()] = u.id; });
+    
+    var added = 0;
+    
+    // Bancos
+    MENU_SECTIONS[1].items.forEach(function(b) {
+      var entries = loadEntries(b.id);
+      entries.forEach(function(e) {
+         if (e.unidade) {
+            var uname = e.unidade.toLowerCase().trim();
+            if (mapUnidades[uname]) {
+               var uid = mapUnidades[uname];
+               var uentries = loadEntries(uid);
+               // não duplicar se já existir o mesmo id
+               if (!uentries.some(function(x) { return x.id === e.id; })) {
+                  uentries.push(Object.assign({}, e));
+                  saveEntries(uid, uentries);
+                  added++;
+               }
+            }
+         }
+      });
+    });
+    
+    alert(added + " lançamentos novos foram distribuídos para as unidades.");
+    renderMaster();
+  });
+
+  document.getElementById("btn-master-txt-atual").addEventListener("click", function() {
+    var lines = ["DATA;DOCUMENTO;VALOR;TIPO;CATEGORIA;UNIDADE;NOME;CPF_CNPJ;HISTORICO"];
+    MENU_SECTIONS[1].items.forEach(function(b) {
+      loadEntries(b.id).forEach(function(e) {
+         if(e.categoria && e.unidade) {
+           var dt = e.data.split("-").reverse().join("/");
+           var val = e.valorNum.toFixed(2).replace(".", ",");
+           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join(";"));
+         }
+      });
+    });
+    if(lines.length === 1) { alert("Nenhum lançamento 100% classificado (com categoria e unidade) nos bancos."); return; }
+    downloadTxt("LANCAMENTOS_ATUAL.txt", lines.join("\r\n"));
+    toast("TXT (Atual) Gerado.");
+  });
+
+  document.getElementById("btn-master-txt-unico").addEventListener("click", function() {
+    var lines = ["Data|Documento|Valor|Tipo|Categoria|Unidade|Nome|CPF_CNPJ|Historico"];
+    MENU_SECTIONS[1].items.forEach(function(b) {
+      loadEntries(b.id).forEach(function(e) {
+         if(e.categoria && e.unidade) {
+           var dt = e.data.split("-").reverse().join("/");
+           var val = e.valorNum.toFixed(2).replace(".", ",");
+           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join("|"));
+         }
+      });
+    });
+    if(lines.length === 1) { alert("Nenhum lançamento 100% classificado nos bancos."); return; }
+    downloadTxt("LANCAMENTOS_SCI_UNICO.txt", lines.join("\r\n"));
+    alert("Arquivo TXT gerado com as colunas separadas por '|' (pipe).\n\nOBS: O sistema SCI Único aceita vários formatos (planilhas ou TXT). Caso o seu precise ser de 'Tamanho Fixo' (posições exatas), me avise qual é o mapa de colunas!");
+  });
+
   document.getElementById("file-import-ledger").addEventListener("change", function(ev){
     if(ev.target.files && ev.target.files[0]) importFile(ev.target.files[0], true);
   });
