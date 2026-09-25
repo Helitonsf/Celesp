@@ -158,21 +158,48 @@
 
     <!-- VIEW: MASTER/DASHBOARD -->
     <div id="view-master" style="display:none;">
-      <section class="panel">
-        <h2>Visão Geral do Mês (Consolidado)</h2>
-        <div class="grid" id="master-cards" style="margin-bottom: 20px;">
-          <!-- Cards injetados via JS -->
-        </div>
-      </section>
-      <section class="panel">
-        <h2>Saldo por Banco/Unidade</h2>
-        <div class="ledger-wrap">
-          <table class="ledger">
-            <thead><tr><th>Conta / Filial</th><th>Créditos</th><th>Débitos</th><th>Saldo Final</th></tr></thead>
-            <tbody id="master-body"></tbody>
+      
+      <!-- Top Actions (like Excel) -->
+      <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <button class="primary" style="flex:1; background:#2B3A42; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">1 > Distribuir por Unidade</button>
+        <button class="primary" style="flex:1; background:#28a745; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">2 > Gerar TXTs (formato atual)</button>
+        <button class="primary" style="flex:1; background:#8e44ad; color:#fff; font-weight:600; padding:15px; border-radius:var(--radius); border:none; cursor:pointer;">3 > Gerar TXTs (Único)</button>
+      </div>
+
+      <div style="display:flex; gap:20px; align-items:flex-start;">
+        <!-- Left Table: Unidades -->
+        <section class="panel" style="flex:1; padding:0; overflow:hidden;">
+          <table class="ledger" style="margin:0; border:none;">
+            <thead>
+              <tr style="background:#2B3A42; color:#fff;">
+                <th style="color:#fff;">Unidade</th>
+                <th style="color:#fff; text-align:center;">Classificados</th>
+                <th style="color:#fff; text-align:center;">Pendentes</th>
+                <th style="color:#fff; text-align:center;">Total</th>
+                <th style="color:#fff; text-align:center;">% Completo</th>
+                <th style="color:#fff; text-align:center;">Ir para aba</th>
+              </tr>
+            </thead>
+            <tbody id="master-body-unidades"></tbody>
           </table>
-        </div>
-      </section>
+        </section>
+
+        <!-- Right Table: Bancos e Outros -->
+        <section class="panel" style="flex:1; padding:0; overflow:hidden;">
+          <table class="ledger" style="margin:0; border:none;">
+            <thead>
+              <tr style="background:#2B3A42; color:#fff;">
+                <th style="color:#fff;">Banco</th>
+                <th style="color:#fff; text-align:center;">Classificados</th>
+                <th style="color:#fff; text-align:center;">Pendentes</th>
+                <th style="color:#fff; text-align:center;">Total</th>
+              </tr>
+            </thead>
+            <tbody id="master-body-bancos"></tbody>
+          </table>
+        </section>
+      </div>
+
     </div>
 
     <!-- VIEW: CONCILIACAO -->
