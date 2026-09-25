@@ -197,7 +197,7 @@
   }
 
   // ---------- Navigation ----------
-  function selectTab(id){
+  var selectTab = window.selectTab = function(id){
     currentTab = id;
     editingId = null;
     var item = itemIndex[id];
@@ -455,52 +455,100 @@
 
   // ---------- Master View ----------
   function renderMaster() {
-    var totCredit = 0;
-    var totDebit = 0;
-    var accountStats = [];
+    var tbUnidades = document.getElementById("master-body-unidades");
+    var tbBancos = document.getElementById("master-body-bancos");
+    tbUnidades.innerHTML = "";
+    tbBancos.innerHTML = "";
 
-    // Iterar apenas pelas abas do tipo "ledger"
-    Object.keys(itemIndex).forEach(function(id) {
-      var item = itemIndex[id];
-      if (item.type !== "ledger") return;
-      
-      var entries = loadEntries(id);
-      var c = 0, d = 0;
-      entries.forEach(function(e) {
-        if(e.sign === "D") d += e.valorNum;
-        else c += e.valorNum;
+    var statsUnidades = [];
+    var statsBancos = [];
+
+    // Iterar pelas seções e construir os stats
+    MENU_SECTIONS.forEach(function(sec) {
+      if (sec.title === "Visão Geral & Fechamento") return;
+
+      sec.items.forEach(function(item) {
+        var entries = loadEntries(item.id);
+        var total = entries.length;
+        var classificados = 0;
+        var pendentes = 0;
+
+        if (item.type === "ledger") {
+          entries.forEach(function(e) {
+            // Regra básica: se tem categoria e unidade, está classificado.
+            if (e.categoria && e.unidade) classificados++;
+            else pendentes++;
+          });
+        } else {
+          // Cadastros não são classificados da mesma forma,
+          // na planilha original fica tudo zerado ou só total.
+          // Mas vamos manter coerência e só colocar no Total.
+          pendentes = 0;
+          classificados = total; // ou 0, no excel os cadastros mostram 0 0 0.
+          // O excel do usuário mostra Clientes 0 0 0.
+          if (entries.length > 0) {
+            total = entries.length;
+            classificados = 0;
+            pendentes = 0; // Só pra não ficar vermelho
+          }
+        }
+
+        var pct = total > 0 ? (classificados / total) * 100 : 0;
+
+        var obj = {
+          id: item.id,
+          label: item.label,
+          classificados: classificados,
+          pendentes: pendentes,
+          total: total,
+          pct: pct
+        };
+
+        if (sec.title === "Unidades") {
+          statsUnidades.push(obj);
+        } else {
+          // Bancos, Outras Movimentações, Cadastros Base
+          // O Excel original não listava todos os cadastros, mas listava Clientes/Fornecedores.
+          // Para simplificar, listaremos todos os outros que não são Unidades.
+          if (item.type !== "cadastro" || item.label === "Clientes" || item.label === "Fornecedores") {
+            statsBancos.push(obj);
+          }
+        }
       });
-
-      if (c > 0 || d > 0) {
-        totCredit += c;
-        totDebit += d;
-        accountStats.push({ 
-          label: (item.bank ? item.bank + " - " : "") + item.label, 
-          c: c, d: d, bal: c - d 
-        });
-      }
     });
 
-    var cardsHtml = 
-      '<div class="card"><div class="label">Total Entradas (Créditos)</div><div class="value val-c">' + formatBRNumber(totCredit) + 'C</div></div>' +
-      '<div class="card"><div class="label">Total Saídas (Débitos)</div><div class="value val-d">' + formatBRNumber(totDebit) + 'D</div></div>' +
-      '<div class="card"><div class="label">Saldo Geral</div><div class="value ' + ((totCredit - totDebit) >= 0 ? 'val-c' : 'val-d') + '">' + formatBRNumber(totCredit - totDebit) + '</div></div>';
-    
-    document.getElementById("master-cards").innerHTML = cardsHtml;
-
-    var tbody = document.getElementById("master-body");
-    tbody.innerHTML = "";
-    if (accountStats.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='4' class='empty'>Nenhuma movimentação encontrada nas contas.</td></tr>";
+    // Renderizar Unidades
+    if (statsUnidades.length === 0) {
+      tbUnidades.innerHTML = "<tr><td colspan='6' class='empty'>Nenhuma unidade cadastrada.</td></tr>";
     } else {
-      accountStats.forEach(function(st) {
+      statsUnidades.forEach(function(st) {
         var tr = document.createElement("tr");
+        var pctColor = st.pct === 100 ? "val-c" : (st.pct > 0 ? "val-c" : "");
+        var pendColor = st.pendentes > 0 ? "val-d" : "";
         tr.innerHTML = 
           '<td>' + escapeHtml(st.label) + '</td>' +
-          '<td class="val-c">' + formatBRNumber(st.c) + 'C</td>' +
-          '<td class="val-d">' + formatBRNumber(st.d) + 'D</td>' +
-          '<td class="' + (st.bal >= 0 ? 'val-c' : 'val-d') + '">' + formatBRNumber(st.bal) + (st.bal >= 0 ? 'C' : 'D') + '</td>';
-        tbody.appendChild(tr);
+          '<td style="text-align:center;" class="val-c">' + st.classificados + '</td>' +
+          '<td style="text-align:center;" class="' + pendColor + '">' + st.pendentes + '</td>' +
+          '<td style="text-align:center; font-weight:600;">' + st.total + '</td>' +
+          '<td style="text-align:center;" class="' + pctColor + '">' + st.pct.toFixed(1).replace(".", ",") + '%</td>' +
+          '<td style="text-align:center;"><a href="#" onclick="event.preventDefault(); selectTab(\'' + st.id + '\')">Ir para aba</a></td>';
+        tbUnidades.appendChild(tr);
+      });
+    }
+
+    // Renderizar Bancos
+    if (statsBancos.length === 0) {
+      tbBancos.innerHTML = "<tr><td colspan='4' class='empty'>Nenhum banco ou movimentação cadastrada.</td></tr>";
+    } else {
+      statsBancos.forEach(function(st) {
+        var tr = document.createElement("tr");
+        var pendColor = st.pendentes > 0 ? "val-d" : "";
+        tr.innerHTML = 
+          '<td>' + escapeHtml(st.label) + '</td>' +
+          '<td style="text-align:center;" class="val-c">' + st.classificados + '</td>' +
+          '<td style="text-align:center;" class="' + pendColor + '">' + st.pendentes + '</td>' +
+          '<td style="text-align:center; font-weight:600;">' + st.total + '</td>';
+        tbBancos.appendChild(tr);
       });
     }
   }
