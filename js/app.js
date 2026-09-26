@@ -1013,6 +1013,14 @@
     renderMaster();
   });
 
+  function cleanTxt(str, delim) {
+    if (!str) return "";
+    var s = String(str).replace(/\r/g, "").replace(/\n/g, " ").trim();
+    if (delim === ";") s = s.replace(/;/g, ",");
+    if (delim === "|") s = s.replace(/\|/g, "-");
+    return s;
+  }
+
   document.getElementById("btn-master-txt-atual").addEventListener("click", function() {
     var lines = ["DATA;DOCUMENTO;VALOR;TIPO;CATEGORIA;UNIDADE;NOME;CPF_CNPJ;HISTORICO"];
     MENU_SECTIONS[1].items.forEach(function(b) {
@@ -1020,7 +1028,17 @@
          if(e.categoria && e.unidade) {
            var dt = e.data.split("-").reverse().join("/");
            var val = e.valorNum.toFixed(2).replace(".", ",");
-           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join(";"));
+           lines.push([
+             dt,
+             cleanTxt(e.doc, ";"),
+             val,
+             e.sign,
+             cleanTxt(e.categoria, ";"),
+             cleanTxt(e.unidade, ";"),
+             cleanTxt(e.nome, ";"),
+             cleanTxt(e.cpf, ";"),
+             cleanTxt(e.desc, ";")
+           ].join(";"));
          }
       });
     });
@@ -1036,13 +1054,23 @@
          if(e.categoria && e.unidade) {
            var dt = e.data.split("-").reverse().join("/");
            var val = e.valorNum.toFixed(2).replace(".", ",");
-           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join("|"));
+           lines.push([
+             dt,
+             cleanTxt(e.doc, "|"),
+             val,
+             e.sign,
+             cleanTxt(e.categoria, "|"),
+             cleanTxt(e.unidade, "|"),
+             cleanTxt(e.nome, "|"),
+             cleanTxt(e.cpf, "|"),
+             cleanTxt(e.desc, "|")
+           ].join("|"));
          }
       });
     });
     if(lines.length === 1) { alert("Nenhum lançamento 100% classificado nos bancos."); return; }
     downloadTxt("LANCAMENTOS_SCI_UNICO.txt", lines.join("\r\n"));
-    alert("Arquivo TXT gerado com as colunas separadas por '|' (pipe).\n\nOBS: O sistema SCI Único aceita vários formatos (planilhas ou TXT). Caso o seu precise ser de 'Tamanho Fixo' (posições exatas), me avise qual é o mapa de colunas!");
+    alert("Arquivo TXT gerado com as colunas separadas por '|' (pipe).\n\nOBS: Verifique se o layout do SCI possui exatamente as 9 colunas configuradas!");
   });
 
   document.getElementById("file-import-ledger").addEventListener("change", function(ev){
@@ -1259,7 +1287,7 @@
             }
             var parsed = raw ? JSON.parse(raw) : [];
             dataCache[id] = parsed;
-            // Migra para o IndexedDB assincronamente e remove do localStorage (opcional)
+            // Migra para o IndexedDB
             localforage.setItem(storageKey(id), parsed);
             localStorage.removeItem(storageKey(id));
           } else {
@@ -1274,7 +1302,7 @@
     initApp();
   }).catch(function(err) {
     console.error("Erro na inicialização:", err);
-    initApp(); // fallback em caso de erro extremo
+    initApp(); // fallback
   });
 
 })();
