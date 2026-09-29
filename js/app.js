@@ -764,12 +764,33 @@
           }
         }
 
+        var existing = loadEntries(currentTab);
+
+        // NOVO: Filtrar duplicatas exatas na importação
+        if (isLedger) {
+          var novos = [];
+          var duplicados = 0;
+          imported.forEach(function(imp) {
+            var jaExiste = existing.some(function(ex) {
+              return ex.data === imp.data && ex.valorNum === imp.valorNum && ex.desc === imp.desc && ex.sign === imp.sign;
+            });
+            if (jaExiste) duplicados++;
+            else novos.push(imp);
+          });
+          
+          if (duplicados > 0) {
+            var msg = "Encontrei " + duplicados + " lançamentos que JÁ EXISTEM nesta aba.\nDeseja ignorar os repetidos e importar apenas os " + novos.length + " novos?";
+            if (confirm(msg)) {
+               imported = novos; // Importa só os novos
+            }
+          }
+        }
+
         if(imported.length === 0){
-          statusEl.textContent = "Nenhum dado reconhecido nessa aba.";
+          statusEl.textContent = "Nenhum lançamento novo para importar.";
           return;
         }
 
-        var existing = loadEntries(currentTab);
         var append = existing.length === 0 || confirm(
           "Encontrei " + imported.length + " item(ns) na aba \"" + foundSheet + "\".\n\n" +
           "OK = adicionar aos " + existing.length + " já existentes.\n" +
@@ -908,9 +929,16 @@
         var resultsHtml = "";
         
         extrato.forEach(function(ext) {
-          // Busca lançamento no sistema com mesma data e mesmo valor (e mesmo sinal)
+          // Busca lançamento no sistema com tolerância de até 3 dias (para compensação de boletos/TEDs)
           var sysMatch = sistema.find(function(s) {
-             return !s._matched && s.data === ext.data && s.valorNum === ext.valorNum && s.sign === ext.sign;
+             if (s._matched || s.valorNum !== ext.valorNum || s.sign !== ext.sign) return false;
+             
+             // Compara a diferença de dias
+             var tSys = new Date(s.data + "T00:00:00").getTime();
+             var tExt = new Date(ext.data + "T00:00:00").getTime();
+             var diffDays = Math.abs(tSys - tExt) / (1000 * 60 * 60 * 24);
+             
+             return diffDays <= 3; // Tolera até 3 dias de diferença
           });
           
           var tr = document.createElement("tr");
@@ -921,12 +949,12 @@
             sysMatch._matched = true;
             matchCount++;
             tr.innerHTML = tdData + tdValorB + 
-              "<td class='conc-match'>✓ OK</td>" +
+              "<td><span class='badge badge-green'>Conciliado</span></td>" +
               "<td class='" + (sysMatch.sign === "D" ? "val-d" : "val-c") + "'>" + formatBRNumber(sysMatch.valorNum) + sysMatch.sign + "</td>" +
               "<td>" + escapeHtml(sysMatch.desc) + "</td>";
           } else {
             tr.innerHTML = tdData + tdValorB + 
-              "<td class='conc-diff'>✗ PENDENTE</td>" +
+              "<td><span class='badge badge-red'>Só no banco</span></td>" +
               "<td colspan='2' class='hint'>Nenhum lançamento exato encontrado no sistema.</td>";
           }
           resultsHtml += tr.outerHTML;
@@ -936,7 +964,7 @@
         sistema.filter(function(s){ return !s._matched; }).forEach(function(sobrou) {
            var tr = document.createElement("tr");
            tr.innerHTML = "<td>" + brDate(sobrou.data) + "</td><td style='border-right:1px solid var(--paper-line);'>-</td>" +
-             "<td class='conc-miss'>! NÃO ESTÁ NO BANCO</td>" +
+             "<td><span class='badge badge-yellow'>Só no sistema</span></td>" +
              "<td class='" + (sobrou.sign === "D" ? "val-d" : "val-c") + "'>" + formatBRNumber(sobrou.valorNum) + sobrou.sign + "</td>" +
              "<td>" + escapeHtml(sobrou.desc) + "</td>";
            resultsHtml += tr.outerHTML;
@@ -944,11 +972,36 @@
         
         document.getElementById("conc-body").innerHTML = resultsHtml;
         document.getElementById("conc-results-panel").style.display = "block";
+        
+        var soNoBanco = extrato.length - matchCount;
+        var soNoSistema = sistema.length - matchCount;
+        var pendencias = soNoBanco + soNoSistema;
+        var total = matchCount + soNoBanco + soNoSistema;
+        var percConciliado = total === 0 ? 0 : Math.round((matchCount / total) * 100);
+        
+        var pctMatch = total === 0 ? 0 : (matchCount / total) * 100;
+        var pctBanco = total === 0 ? 0 : (soNoBanco / total) * 100;
+        var pctSistema = total === 0 ? 0 : (soNoSistema / total) * 100;
+
         document.getElementById("conc-totals").innerHTML = 
-           "<span>Total do Extrato: <strong>" + extrato.length + "</strong></span>" +
-           "<span>Lançamentos no Sistema: <strong>" + sistema.length + "</strong></span>" +
-           "<span class='val-c'>Batidos (OK): <strong>" + matchCount + "</strong></span>";
-           renderConciliacao(extrato);
+           "<div style='width:100%'>" +
+           "  <div style='display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 8px;'>" +
+           "    <h3 style='margin:0; font-size:18px; color:var(--text);'>" + pendencias + " pendências, " + percConciliado + "% conciliado</h3>" +
+           "  </div>" +
+           "  <div class='progress-container'>" +
+           "    <div class='progress-segment' style='width:" + pctMatch + "%; background:var(--status-green-txt);'></div>" +
+           "    <div class='progress-segment' style='width:" + pctBanco + "%; background:var(--status-red-txt);'></div>" +
+           "    <div class='progress-segment' style='width:" + pctSistema + "%; background:var(--status-yellow-txt);'></div>" +
+           "  </div>" +
+           "  <div class='progress-legend'>" +
+           "    <span><span style='color:var(--status-green-txt);'>●</span> Conciliado " + matchCount + "</span>" +
+           "    <span><span style='color:var(--status-red-txt);'>●</span> Só no banco " + soNoBanco + "</span>" +
+           "    <span><span style='color:var(--status-yellow-txt);'>●</span> Só no sistema " + soNoSistema + "</span>" +
+           "  </div>" +
+           "</div>";
+           
+        // renderConciliacao(extrato); (se existisse)
+
         statusEl.textContent = "Conciliação concluída.";
         document.getElementById("file-import-conc").value = "";
       } catch(e) {
@@ -1246,12 +1299,11 @@
     selectTab("master");
   }
 
-  // --- FASE 1: Melhorias UX e Segurança (Modo Escuro e Backup) ---
+  // --- FASE 1: Melhorias UX e Segurança (CORRIGIDO) ---
   
   // Tema Escuro
   var btnTheme = document.getElementById("btn-toggle-theme");
   if(btnTheme) {
-    // Carrega a preferência salva
     var savedTheme = localStorage.getItem("app-theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
     btnTheme.innerText = savedTheme === "dark" ? "☀️ Modo Claro" : "🌙 Modo Escuro";
@@ -1269,22 +1321,30 @@
   var btnBackup = document.getElementById("btn-backup-data");
   if(btnBackup) {
     btnBackup.addEventListener("click", function() {
-      if(Object.keys(dataCache).length === 0) {
+      var backupData = {};
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        // Pega todos os dados da aplicação
+        if (key.startsWith("lancamentos:agosto:") || key === "system_banks" || key === "system_units" || key === "app-theme") {
+          backupData[key] = localStorage.getItem(key);
+        }
+      }
+      
+      if(Object.keys(backupData).length === 0) {
         alert("Nenhum dado para fazer backup.");
         return;
       }
-      var backupData = JSON.stringify(dataCache);
-      var blob = new Blob([backupData], { type: "application/json" });
+      
+      var blob = new Blob([JSON.stringify(backupData)], { type: "application/json" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url;
-      var dateStr = new Date().toISOString().split("T")[0];
-      a.download = "Backup_Gestao_Financeira_" + dateStr + ".json";
+      a.download = "Backup_Gestao_Financeira_" + new Date().toISOString().split("T")[0] + ".json";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast("Backup gerado com sucesso!");
+      toast("Backup baixado com sucesso!");
     });
   }
 
@@ -1294,7 +1354,7 @@
     fileRestore.addEventListener("change", function(ev) {
       var file = ev.target.files[0];
       if(!file) return;
-      if(!confirm("Atenção: Restaurar um backup substituirá TODOS os lançamentos atuais pelos do arquivo. Tem certeza?")) {
+      if(!confirm("Atenção: Restaurar um backup SUBSTITUIRÁ TODOS os lançamentos atuais. Tem certeza?")) {
         fileRestore.value = "";
         return;
       }
@@ -1303,18 +1363,11 @@
       reader.onload = function(e) {
         try {
           var importedData = JSON.parse(e.target.result);
-          // Restaurar para dataCache e localforage
-          var promises = [];
           for(var key in importedData) {
-            dataCache[key] = importedData[key];
-            promises.push(localforage.setItem(storageKey(key), importedData[key]));
+            localStorage.setItem(key, importedData[key]);
           }
-          Promise.all(promises).then(function() {
-            toast("Backup restaurado com sucesso!");
-            initApp(); // Recarrega os menus e view
-          }).catch(function(err) {
-            alert("Erro ao gravar dados restaurados: " + err);
-          });
+          toast("Backup restaurado! Recarregando...");
+          setTimeout(function() { location.reload(); }, 1500);
         } catch(err) {
           alert("O arquivo de backup é inválido ou está corrompido.");
         }
