@@ -77,21 +77,27 @@
   var currentTab = null;
   var editingId = null;
 
-  var dataCache = {};
-
   // ---------- storage ----------
   function storageKey(id){ return "lancamentos:agosto:" + id; }
 
   function loadEntries(id){
-    return dataCache[id] || [];
+    try {
+      var raw = localStorage.getItem(storageKey(id));
+      if (!raw) return [];
+      if (typeof LZString !== "undefined" && !raw.startsWith("[")) {
+         raw = LZString.decompressFromUTF16(raw);
+      }
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
   }
 
   function saveEntries(id, entries){
-    dataCache[id] = entries;
     try {
-      localforage.setItem(storageKey(id), entries).catch(function(err){
-        console.error("Erro no saveEntries (background):", err);
-      });
+      var str = JSON.stringify(entries);
+      if (typeof LZString !== "undefined") {
+         str = LZString.compressToUTF16(str);
+      }
+      localStorage.setItem(storageKey(id), str);
       return true;
     } catch(e){ return false; }
   }
@@ -1013,14 +1019,6 @@
     renderMaster();
   });
 
-  function cleanTxt(str, delim) {
-    if (!str) return "";
-    var s = String(str).replace(/\r/g, "").replace(/\n/g, " ").trim();
-    if (delim === ";") s = s.replace(/;/g, ",");
-    if (delim === "|") s = s.replace(/\|/g, "-");
-    return s;
-  }
-
   document.getElementById("btn-master-txt-atual").addEventListener("click", function() {
     var lines = ["DATA;DOCUMENTO;VALOR;TIPO;CATEGORIA;UNIDADE;NOME;CPF_CNPJ;HISTORICO"];
     MENU_SECTIONS[1].items.forEach(function(b) {
@@ -1028,17 +1026,7 @@
          if(e.categoria && e.unidade) {
            var dt = e.data.split("-").reverse().join("/");
            var val = e.valorNum.toFixed(2).replace(".", ",");
-           lines.push([
-             dt,
-             cleanTxt(e.doc, ";"),
-             val,
-             e.sign,
-             cleanTxt(e.categoria, ";"),
-             cleanTxt(e.unidade, ";"),
-             cleanTxt(e.nome, ";"),
-             cleanTxt(e.cpf, ";"),
-             cleanTxt(e.desc, ";")
-           ].join(";"));
+           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join(";"));
          }
       });
     });
@@ -1054,23 +1042,13 @@
          if(e.categoria && e.unidade) {
            var dt = e.data.split("-").reverse().join("/");
            var val = e.valorNum.toFixed(2).replace(".", ",");
-           lines.push([
-             dt,
-             cleanTxt(e.doc, "|"),
-             val,
-             e.sign,
-             cleanTxt(e.categoria, "|"),
-             cleanTxt(e.unidade, "|"),
-             cleanTxt(e.nome, "|"),
-             cleanTxt(e.cpf, "|"),
-             cleanTxt(e.desc, "|")
-           ].join("|"));
+           lines.push([dt, e.doc||"", val, e.sign, e.categoria, e.unidade, e.nome, e.cpf, e.desc].join("|"));
          }
       });
     });
     if(lines.length === 1) { alert("Nenhum lançamento 100% classificado nos bancos."); return; }
     downloadTxt("LANCAMENTOS_SCI_UNICO.txt", lines.join("\r\n"));
-    alert("Arquivo TXT gerado com as colunas separadas por '|' (pipe).\n\nOBS: Verifique se o layout do SCI possui exatamente as 9 colunas configuradas!");
+    alert("Arquivo TXT gerado com as colunas separadas por '|' (pipe).\n\nOBS: O sistema SCI Único aceita vários formatos (planilhas ou TXT). Caso o seu precise ser de 'Tamanho Fixo' (posições exatas), me avise qual é o mapa de colunas!");
   });
 
   document.getElementById("file-import-ledger").addEventListener("change", function(ev){
@@ -1259,50 +1237,91 @@
     refreshFormOptions();
   };
 
-  function initApp() {
-    refreshFormOptions();
-    buildSidebar();
-    populateConcSelect();
-    if (MENU_SECTIONS[1].items && MENU_SECTIONS[1].items.length > 0) {
-      selectTab(MENU_SECTIONS[1].items[0].id);
-    } else {
-      selectTab("master");
-    }
+  refreshFormOptions();
+  buildSidebar();
+  populateConcSelect();
+  if (MENU_SECTIONS[1].items && MENU_SECTIONS[1].items.length > 0) {
+    selectTab(MENU_SECTIONS[1].items[0].id);
+  } else {
+    selectTab("master");
   }
 
-  // Carrega todos os dados do IndexedDB (localforage) antes de iniciar
-  var allIds = Object.keys(itemIndex);
-  Promise.all(allIds.map(function(id) {
-    return localforage.getItem(storageKey(id)).then(function(val) {
-      if (val) {
-        dataCache[id] = val;
-      } else {
-        // Migration from old localStorage
-        try {
-          var old = localStorage.getItem(storageKey(id));
-          if (old) {
-            var raw = old;
-            if (typeof LZString !== "undefined" && !raw.startsWith("[")) {
-               raw = LZString.decompressFromUTF16(raw);
-            }
-            var parsed = raw ? JSON.parse(raw) : [];
-            dataCache[id] = parsed;
-            // Migra para o IndexedDB
-            localforage.setItem(storageKey(id), parsed);
-            localStorage.removeItem(storageKey(id));
-          } else {
-            dataCache[id] = [];
-          }
-        } catch(e) {
-          dataCache[id] = [];
-        }
-      }
+  // --- FASE 1: Melhorias UX e Segurança (Modo Escuro e Backup) ---
+  
+  // Tema Escuro
+  var btnTheme = document.getElementById("btn-toggle-theme");
+  if(btnTheme) {
+    // Carrega a preferência salva
+    var savedTheme = localStorage.getItem("app-theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    btnTheme.innerText = savedTheme === "dark" ? "☀️ Modo Claro" : "🌙 Modo Escuro";
+
+    btnTheme.addEventListener("click", function() {
+      var current = document.documentElement.getAttribute("data-theme");
+      var next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("app-theme", next);
+      btnTheme.innerText = next === "dark" ? "☀️ Modo Claro" : "🌙 Modo Escuro";
     });
-  })).then(function() {
-    initApp();
-  }).catch(function(err) {
-    console.error("Erro na inicialização:", err);
-    initApp(); // fallback
-  });
+  }
+
+  // Baixar Backup
+  var btnBackup = document.getElementById("btn-backup-data");
+  if(btnBackup) {
+    btnBackup.addEventListener("click", function() {
+      if(Object.keys(dataCache).length === 0) {
+        alert("Nenhum dado para fazer backup.");
+        return;
+      }
+      var backupData = JSON.stringify(dataCache);
+      var blob = new Blob([backupData], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      var dateStr = new Date().toISOString().split("T")[0];
+      a.download = "Backup_Gestao_Financeira_" + dateStr + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast("Backup gerado com sucesso!");
+    });
+  }
+
+  // Restaurar Backup
+  var fileRestore = document.getElementById("file-restore-data");
+  if(fileRestore) {
+    fileRestore.addEventListener("change", function(ev) {
+      var file = ev.target.files[0];
+      if(!file) return;
+      if(!confirm("Atenção: Restaurar um backup substituirá TODOS os lançamentos atuais pelos do arquivo. Tem certeza?")) {
+        fileRestore.value = "";
+        return;
+      }
+      
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var importedData = JSON.parse(e.target.result);
+          // Restaurar para dataCache e localforage
+          var promises = [];
+          for(var key in importedData) {
+            dataCache[key] = importedData[key];
+            promises.push(localforage.setItem(storageKey(key), importedData[key]));
+          }
+          Promise.all(promises).then(function() {
+            toast("Backup restaurado com sucesso!");
+            initApp(); // Recarrega os menus e view
+          }).catch(function(err) {
+            alert("Erro ao gravar dados restaurados: " + err);
+          });
+        } catch(err) {
+          alert("O arquivo de backup é inválido ou está corrompido.");
+        }
+      };
+      reader.readAsText(file);
+      fileRestore.value = "";
+    });
+  }
 
 })();
