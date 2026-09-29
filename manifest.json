@@ -1,0 +1,16 @@
+{
+  "name": "Gestão Financeira",
+  "short_name": "Financeiro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "description": "Sistema de gestão financeira e conciliação bancária",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135679.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
